@@ -49,7 +49,6 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 		RequestStatus requestStatus=new RequestStatus();
 		requestStatus.setID(1);
 		requestStatus.setEXT_ID("aaaa111");
-		requestStatus.setNODE_ID(1);
 		requestStatus.setSTATUS(100);
 		requestStatus.setSYSTEM_ID(1);
 		requestStatus.setINSERT_DATE(new Date(System.currentTimeMillis()));
