@@ -51,6 +51,7 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 			_request.setTIPO_VISITA(request.getTipoVisita());
 			_request.setDTP(request.getDtp());
 			_request.setSPECIALIZZAZIONE(request.getSpecializzazione());
+			_request.setAUDIOMA_ID(Long.valueOf(id));
 			
 			RequestStatus _requestStatus = new RequestStatus();
 			
