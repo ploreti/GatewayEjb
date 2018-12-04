@@ -1,6 +1,7 @@
 package it.almawave.gateway.db;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
@@ -8,6 +9,8 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.transaction.SystemException;
 
 import it.almawave.gateway.db.bean.DoRequestBean;
@@ -34,7 +37,7 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 	}
 	
 	/**
-	 * il servizio avvia il processo di trascrizione/classificazione. 
+	 * Il servizio avvia il processo di trascrizione/classificazione. 
 	 * @param request
 	 * @return Identificativo univoco della richiesta.
 	 */
@@ -61,52 +64,44 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 			em.persist(_request);
 			em.persist(_requestStatus);
 			
+			return request.getIdDifformita();
+			
 			
 		}catch (Exception e) {
-			
+			return "Nessuna richiesta è stata inserita";
 		}finally {
 			
 		}
 		
+	}
+	
+	/**
+	 * Il servizio verifica lo stato della richiesta di trascrizione/classificazione. 
+	 * @param id
+	 * @return Stato della richiesta
+	 */
+	public String getStatus(String id) {
 		
-		return null;
-	}
-
-	public void insertRequest() {
-		Request request=new Request();
-		//request.setID(2);
-		request.setEXT_ID("aaaa111");
-		request.setAUDIOMA_ID(Long.valueOf(1111111111));
-		request.setNODE_ID(1);
-		request.setFILE_URI("metto file uri");
-		request.setTIPO_VISITA("metto tipo visita");
-		request.setDTP("metto DTP");
-		request.setSPECIALIZZAZIONE("METTO SPECIALIZZAZIONE");
+		try {
+			
+			Query query = em.createNamedQuery("RequestStatus.findStatusByExtId");
+			query.setParameter("extID", id);
+			List results = query.getResultList();
+			
+			if (!results.isEmpty())
+				return "Nessuna richiesta è stata trovata";
+			
+			return ((Integer)results.get(0)).toString();
+			
+			
+		}catch (Exception e) {
+			return "Errore nel recupero dello sto della richiesta";
+		}finally {
+			
+		}
 		
-		request.setSTART_DATE(new Date(System.currentTimeMillis()));
-		em.persist(request);
 	}
+	
 
-<<<<<<< HEAD
-//	public void insertRequestStatus() throws IllegalStateException, SecurityException, SystemException {
-//		RequestStatus requestStatus=new RequestStatus();
-//		requestStatus.setID(1);
-//		requestStatus.setEXT_ID("aaaa111");
-//		requestStatus.setNODE_ID(1);
-//		requestStatus.setSTATUS(100);
-//		requestStatus.setSYSTEM_ID(1);
-//		requestStatus.setINSERT_DATE(new Date(System.currentTimeMillis()));
-//		em.persist(requestStatus);
-//	}
-=======
-	public void insertRequestStatus() throws IllegalStateException, SecurityException, SystemException {
-		RequestStatus requestStatus=new RequestStatus();
-		//requestStatus.setID(1);
-		requestStatus.setEXT_ID("aaaa111");
-		requestStatus.setSTATUS(100);
-		requestStatus.setSYSTEM_ID(1);
-		requestStatus.setINSERT_DATE(new Date(System.currentTimeMillis()));
-		em.persist(requestStatus);
-	}
->>>>>>> branch 'master' of https://github.com/ploreti/GatewayEjb.git
+
 }
