@@ -33,7 +33,7 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 
 	public void insertRequest() {
 		Request request=new Request();
-		request.setID(2);
+		//request.setID(2);
 		request.setEXT_ID("aaaa111");
 		request.setNODE_ID(1);
 		request.setFILE_URI("metto file uri");
@@ -47,7 +47,7 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 
 	public void insertRequestStatus() throws IllegalStateException, SecurityException, SystemException {
 		RequestStatus requestStatus=new RequestStatus();
-		requestStatus.setID(1);
+		//requestStatus.setID(1);
 		requestStatus.setEXT_ID("aaaa111");
 		requestStatus.setSTATUS(100);
 		requestStatus.setSYSTEM_ID(1);
