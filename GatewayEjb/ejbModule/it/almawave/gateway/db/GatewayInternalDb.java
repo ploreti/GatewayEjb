@@ -2,13 +2,18 @@ package it.almawave.gateway.db;
 
 import java.util.Date;
 
-
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.SystemException;
 
+import it.almawave.gateway.db.bean.DoRequestBean;
+import it.almawave.gateway.db.bean.DoRequestBean;
 import it.almawave.gateway.internal.Request;
 import it.almawave.gateway.internal.RequestStatus;
 
@@ -70,10 +75,45 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 		return null;
 	}
 	
-    public void callCRM() {
-    	
-    }
-    
+	/**
+	 * il servizio avvia il processo di trascrizione/classificazione. 
+	 * @param request
+	 * @return Identificativo univoco della richiesta.
+	 */
+	@TransactionAttribute(value=TransactionAttributeType.REQUIRES_NEW)
+	public String doRequest(DoRequestBean request, String id) {
+		
+		try {
+			
+			Request _request = new Request();
+			_request.setEXT_ID(request.getIdDifformita());
+			_request.setNODE_ID(1);
+			_request.setFILE_URI(request.getPercorsoFileAudio());
+			_request.setTIPO_VISITA(request.getTipoVisita());
+			_request.setDTP(request.getDtp());
+			_request.setSPECIALIZZAZIONE(request.getSpecializzazione());
+			
+			RequestStatus _requestStatus = new RequestStatus();
+			
+			_requestStatus.setEXT_ID(request.getIdDifformita());
+			_requestStatus.setINSERT_DATE(new Date());
+			_requestStatus.setSTATUS(1);
+			_requestStatus.setSYSTEM_ID(1);
+						
+			em.persist(_request);
+			em.persist(_requestStatus);
+			
+			
+		}catch (Exception e) {
+			
+		}finally {
+			
+		}
+		
+		
+		return null;
+	}
+
 	public void insertRequest() {
 		Request request=new Request();
 		//request.setID(2);
