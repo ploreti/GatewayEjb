@@ -6,14 +6,20 @@ import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+<<<<<<< HEAD
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+=======
+>>>>>>> branch 'master' of https://github.com/ploreti/GatewayEjb.git
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.SystemException;
 
 import it.almawave.gateway.db.bean.DoRequestBean;
+<<<<<<< HEAD
 import it.almawave.gateway.db.bean.DoRequestBean;
+=======
+>>>>>>> branch 'master' of https://github.com/ploreti/GatewayEjb.git
 import it.almawave.gateway.internal.Request;
 import it.almawave.gateway.internal.RequestStatus;
 
@@ -74,6 +80,7 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 		
 		return null;
 	}
+<<<<<<< HEAD
 	
 	/**
 	 * il servizio avvia il processo di trascrizione/classificazione. 
@@ -113,6 +120,8 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 		
 		return null;
 	}
+=======
+>>>>>>> branch 'master' of https://github.com/ploreti/GatewayEjb.git
 
 	public void insertRequest() {
 		Request request=new Request();
