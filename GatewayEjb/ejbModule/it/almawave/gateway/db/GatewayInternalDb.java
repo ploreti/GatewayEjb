@@ -74,8 +74,9 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 
 	public void insertRequest() {
 		Request request=new Request();
-		request.setID(2);
+		//request.setID(2);
 		request.setEXT_ID("aaaa111");
+		request.setAUDIOMA_ID(Long.valueOf(1111111111));
 		request.setNODE_ID(1);
 		request.setFILE_URI("metto file uri");
 		request.setTIPO_VISITA("metto tipo visita");
@@ -86,6 +87,7 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 		em.persist(request);
 	}
 
+<<<<<<< HEAD
 //	public void insertRequestStatus() throws IllegalStateException, SecurityException, SystemException {
 //		RequestStatus requestStatus=new RequestStatus();
 //		requestStatus.setID(1);
@@ -96,4 +98,15 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 //		requestStatus.setINSERT_DATE(new Date(System.currentTimeMillis()));
 //		em.persist(requestStatus);
 //	}
+=======
+	public void insertRequestStatus() throws IllegalStateException, SecurityException, SystemException {
+		RequestStatus requestStatus=new RequestStatus();
+		//requestStatus.setID(1);
+		requestStatus.setEXT_ID("aaaa111");
+		requestStatus.setSTATUS(100);
+		requestStatus.setSYSTEM_ID(1);
+		requestStatus.setINSERT_DATE(new Date(System.currentTimeMillis()));
+		em.persist(requestStatus);
+	}
+>>>>>>> branch 'master' of https://github.com/ploreti/GatewayEjb.git
 }
