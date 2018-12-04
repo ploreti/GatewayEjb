@@ -35,6 +35,7 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 		Request request=new Request();
 		//request.setID(2);
 		request.setEXT_ID("aaaa111");
+		request.setAUDIOMA_ID(Long.valueOf(1111111111));
 		request.setNODE_ID(1);
 		request.setFILE_URI("metto file uri");
 		request.setTIPO_VISITA("metto tipo visita");
