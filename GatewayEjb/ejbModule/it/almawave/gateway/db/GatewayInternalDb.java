@@ -1,18 +1,34 @@
 package it.almawave.gateway.db;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Date;
+import java.util.List;
 
+import javax.activation.DataHandler;
+import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.mail.util.ByteArrayDataSource;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.transaction.SystemException;
+import javax.persistence.Query;
 
+import org.apache.commons.io.FileUtils;
+
+import it.almawave.gateway.asr.ServiceUpload;
+import it.almawave.gateway.asr.StatusTimerService;
 import it.almawave.gateway.db.bean.DoRequestBean;
 import it.almawave.gateway.internal.Request;
 import it.almawave.gateway.internal.RequestStatus;
+import it.pervoice.audiomabox.commontypes._1.FileType;
+import it.pervoice.audiomabox.services.upload._1.UploadRequest;
+import it.pervoice.audiomabox.services.upload._1.UploadRequest.RemoteFile;
+import it.pervoice.audiomabox.services.upload._1.UploadResponse;
+import it.pervoice.ws.audiomabox.service.upload._1.UploadFault;
+import it.pervoice.ws.audiomabox.service.upload._1.UploadWS;
 
 /**
  * Session Bean implementation class GatewayInternalDb
@@ -23,6 +39,9 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 
 	@PersistenceContext(unitName = "GatewayJpa")
 	EntityManager em;
+	
+	@EJB
+	StatusTimerService st;
 
 	//	@Resource
 	//	private SessionContext sessionContext;
@@ -34,15 +53,40 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 	}
 	
 	/**
-	 * il servizio avvia il processo di trascrizione/classificazione. 
+	 * Il servizio avvia il processo di trascrizione/classificazione. 
 	 * @param request
 	 * @return Identificativo univoco della richiesta.
 	 */
 	@TransactionAttribute(value=TransactionAttributeType.REQUIRES_NEW)
-	public String doRequest(DoRequestBean request, String id) {
+	public String doRequest(DoRequestBean request) {
 		
 		try {
 			
+			//recuperare il file
+			File file = new File(request.getPercorsoFileAudio()); 
+	        byte[] data = FileUtils.readFileToByteArray(file);
+	        ByteArrayDataSource rawData = new ByteArrayDataSource(data,"application/octet-stream");
+			
+	        //chamare il servizio uploadService
+	        UploadWS service = new ServiceUpload().getService(); 
+
+	        UploadRequest uploadRequest = new UploadRequest();
+	        //file
+	        RemoteFile remoteFile = new RemoteFile();
+	        FileType fileType = new FileType(); 
+	        fileType.setName(file.getName());
+	        DataHandler dataHandler =  new DataHandler(rawData);
+	        fileType.setData(dataHandler);
+	        remoteFile.setFile(fileType);
+	        uploadRequest.setRemoteFile(remoteFile);
+	        
+	        //TODO: finire di completare la riquest
+			
+			//recuperare id dalla respons
+	        UploadResponse uploadResponse = service.upload(uploadRequest);
+	        String id = String.valueOf(uploadResponse.getJobElement().get(0).getJobId());
+			
+			//memorizzare nel db la requeste e lo status
 			Request _request = new Request();
 			_request.setEXT_ID(request.getIdDifformita());
 			_request.setNODE_ID(1);
@@ -50,6 +94,7 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 			_request.setTIPO_VISITA(request.getTipoVisita());
 			_request.setDTP(request.getDtp());
 			_request.setSPECIALIZZAZIONE(request.getSpecializzazione());
+			_request.setAUDIOMA_ID(Long.valueOf(id));
 			
 			RequestStatus _requestStatus = new RequestStatus();
 			
@@ -61,41 +106,49 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 			em.persist(_request);
 			em.persist(_requestStatus);
 			
+			//laciare il timer per il recupero dello status
+			st = new StatusTimerService(id, request.getIdDifformita());
 			
+			return request.getIdDifformita();
+			
+		}catch (FileNotFoundException e) {
+			return "File audio non trovato";
+		} catch (UploadFault e) {
+			e.printStackTrace();
+			return "Errore nella chiata al servizio Upload di PerVoice";
 		}catch (Exception e) {
-			
+			return "Nessuna richiesta è stata inserita";
 		}finally {
 			
 		}
 		
-		
-		return null;
 	}
-
-	public void insertRequest() {
-		Request request=new Request();
-		//request.setID(2);
-		request.setEXT_ID("aaaa111");
-		request.setAUDIOMA_ID(Long.valueOf(1111111111));
-		request.setNODE_ID(1);
-		request.setFILE_URI("metto file uri");
-		request.setTIPO_VISITA("metto tipo visita");
-		request.setDTP("metto DTP");
-		request.setSPECIALIZZAZIONE("METTO SPECIALIZZAZIONE");
+	
+	/**
+	 * Il servizio verifica lo stato della richiesta di trascrizione/classificazione. 
+	 * @param id
+	 * @return Stato della richiesta
+	 */
+	public String getStatus(String id) {
 		
-		request.setSTART_DATE(new Date(System.currentTimeMillis()));
-		em.persist(request);
-	}
-
-
-	public void insertRequestStatus() throws IllegalStateException, SecurityException, SystemException {
-		RequestStatus requestStatus=new RequestStatus();
-		//requestStatus.setID(1);
-		requestStatus.setEXT_ID("aaaa111");
-		requestStatus.setSTATUS(100);
-		requestStatus.setSYSTEM_ID(1);
-		requestStatus.setINSERT_DATE(new Date(System.currentTimeMillis()));
-		em.persist(requestStatus);
+		try {
+			
+			Query query = em.createNamedQuery("RequestStatus.findStatusByExtId");
+			query.setParameter("extID", id);
+			List results = query.getResultList();
+			
+			if (!results.isEmpty())
+				return "Nessuna richiesta è stata trovata";
+			
+			return ((Integer)results.get(0)).toString();
+			
+			
+		}catch (Exception e) {
+			return "Errore nel recupero dello sto della richiesta";
+		}finally {
+			
+		}
+		
 	}
 
 }
