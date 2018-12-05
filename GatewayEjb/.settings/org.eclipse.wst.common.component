@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
     <wb-module deploy-name="GatewayEjb">
         <wb-resource deploy-path="/" source-path="/ejbModule" tag="defaultRootSource"/>
+        <dependent-module archiveName="commons-io-2.5.jar" deploy-path="/" handle="module:/classpath/lib/C:/home/lavoro/codici/java/local_user_lib/commons-io-2.5.jar">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
         <property name="java-output-path" value="/GatewayEjb/build/classes"/>
         <property name="ClientProject" value="GatewayEjbClient"/>
         <property name="ClientJARURI" value="GatewayEjbClient.jar"/>
