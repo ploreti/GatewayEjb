@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 
 import javax.activation.DataHandler;
+import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -18,6 +19,7 @@ import javax.persistence.Query;
 import org.apache.commons.io.FileUtils;
 
 import it.almawave.gateway.asr.ServiceUpload;
+import it.almawave.gateway.asr.StatusTimerService;
 import it.almawave.gateway.db.bean.DoRequestBean;
 import it.almawave.gateway.internal.Request;
 import it.almawave.gateway.internal.RequestStatus;
@@ -37,6 +39,9 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 
 	@PersistenceContext(unitName = "GatewayJpa")
 	EntityManager em;
+	
+	@EJB
+	StatusTimerService st;
 
 	//	@Resource
 	//	private SessionContext sessionContext;
@@ -102,6 +107,7 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 			em.persist(_requestStatus);
 			
 			//laciare il timer per il recupero dello status
+			st = new StatusTimerService(id, request.getIdDifformita());
 			
 			return request.getIdDifformita();
 			

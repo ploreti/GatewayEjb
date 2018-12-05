@@ -6,7 +6,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
-import javax.ejb.Startup;
 import javax.ejb.Timeout;
 import javax.ejb.Timer;
 import javax.ejb.TimerConfig;
@@ -19,13 +18,12 @@ import org.jboss.logging.Logger;
  */
 @Singleton
 @LocalBean
-@Startup
 public class StatusTimerService {
 	
 	private static final Logger LOGGER = Logger.getLogger(StatusTimerService.class);
 
 	//AUDIOMA_ID
-	private String identificativo;
+	private String identificativo = null;
 	//EXT_ID
 	private String idDifformita;
     
@@ -33,16 +31,21 @@ public class StatusTimerService {
     @Resource
     private TimerService timerService;
     
+    public StatusTimerService() {
+
+    }
     public StatusTimerService(String id, String idDifformita) {
         this.identificativo = id;
         this.idDifformita = idDifformita;
+        
+        TimerConfig timerConfig = new TimerConfig();
+    	timerConfig.setInfo("StatusTimerService_"+this.getIdentificativo());
+    	timerService.createIntervalTimer(5000, 5000, timerConfig); //ogni 5 sec 
     }
 
     @PostConstruct
     private void init() {
-    	TimerConfig timerConfig = new TimerConfig();
-    	timerConfig.setInfo("StatusTimerService_"+this.getIdentificativo());
-    	timerService.createIntervalTimer(5000, 5000, timerConfig); //ogni 5 sec 
+    	
     }
     
 	@Timeout
@@ -59,6 +62,11 @@ public class StatusTimerService {
 		LOGGER.info("Timer Service : " + timer.getInfo());
 		LOGGER.info("Execution Time : " + new Date());
 		LOGGER.info("____________________________________________");
+		
+		if (identificativo == null)
+			timer.cancel();
+		
+
 		
 	}
 
