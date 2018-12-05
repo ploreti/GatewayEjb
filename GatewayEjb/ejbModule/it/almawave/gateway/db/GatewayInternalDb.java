@@ -1,19 +1,32 @@
 package it.almawave.gateway.db;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Date;
 import java.util.List;
 
+import javax.activation.DataHandler;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.mail.util.ByteArrayDataSource;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
+import org.apache.commons.io.FileUtils;
+
+import it.almawave.gateway.asr.ServiceUpload;
 import it.almawave.gateway.db.bean.DoRequestBean;
 import it.almawave.gateway.internal.Request;
 import it.almawave.gateway.internal.RequestStatus;
+import it.pervoice.audiomabox.commontypes._1.FileType;
+import it.pervoice.audiomabox.services.upload._1.UploadRequest;
+import it.pervoice.audiomabox.services.upload._1.UploadRequest.RemoteFile;
+import it.pervoice.audiomabox.services.upload._1.UploadResponse;
+import it.pervoice.ws.audiomabox.service.upload._1.UploadFault;
+import it.pervoice.ws.audiomabox.service.upload._1.UploadWS;
 
 /**
  * Session Bean implementation class GatewayInternalDb
@@ -40,10 +53,35 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 	 * @return Identificativo univoco della richiesta.
 	 */
 	@TransactionAttribute(value=TransactionAttributeType.REQUIRES_NEW)
-	public String doRequest(DoRequestBean request, String id) {
+	public String doRequest(DoRequestBean request) {
 		
 		try {
 			
+			//recuperare il file
+			File file = new File(request.getPercorsoFileAudio()); 
+	        byte[] data = FileUtils.readFileToByteArray(file);
+	        ByteArrayDataSource rawData = new ByteArrayDataSource(data,"application/octet-stream");
+			
+	        //chamare il servizio uploadService
+	        UploadWS service = new ServiceUpload().getService(); 
+
+	        UploadRequest uploadRequest = new UploadRequest();
+	        //file
+	        RemoteFile remoteFile = new RemoteFile();
+	        FileType fileType = new FileType(); 
+	        fileType.setName(file.getName());
+	        DataHandler dataHandler =  new DataHandler(rawData);
+	        fileType.setData(dataHandler);
+	        remoteFile.setFile(fileType);
+	        uploadRequest.setRemoteFile(remoteFile);
+	        
+	        //TODO: finire di completare la riquest
+			
+			//recuperare id dalla respons
+	        UploadResponse uploadResponse = service.upload(uploadRequest);
+	        String id = String.valueOf(uploadResponse.getJobElement().get(0).getJobId());
+			
+			//memorizzare nel db la requeste e lo status
 			Request _request = new Request();
 			_request.setEXT_ID(request.getIdDifformita());
 			_request.setNODE_ID(1);
@@ -63,9 +101,15 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 			em.persist(_request);
 			em.persist(_requestStatus);
 			
+			//laciare il timer per il recupero dello status
+			
 			return request.getIdDifformita();
 			
-			
+		}catch (FileNotFoundException e) {
+			return "File audio non trovato";
+		} catch (UploadFault e) {
+			e.printStackTrace();
+			return "Errore nella chiata al servizio Upload di PerVoice";
 		}catch (Exception e) {
 			return "Nessuna richiesta è stata inserita";
 		}finally {
