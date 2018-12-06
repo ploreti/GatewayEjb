@@ -21,6 +21,7 @@ import org.apache.commons.io.FileUtils;
 
 import it.almawave.gateway.asr.ServiceUpload;
 import it.almawave.gateway.asr.StatusTimerService;
+import it.almawave.gateway.configuration.PropertiesBean;
 import it.almawave.gateway.db.bean.DoRequestBean;
 import it.almawave.gateway.internal.Request;
 import it.almawave.gateway.internal.RequestStatus;
@@ -87,10 +88,10 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 			UploadResponse uploadResponse = service.upload(uploadRequest);
 			String id = String.valueOf(uploadResponse.getJobElement().get(0).getJobId());
 
-			//memorizzare nel db la requeste e lo status
+			//memorizzare nel db la requestee lo status
 			dbM.inserisciRequest(request, id);
 
-			//laciare il timer per il recupero dello status
+			//laciare il timer per il recupero dellostatus
 			st.init(id, request.getIdDifformita());
 
 			return request.getIdDifformita();

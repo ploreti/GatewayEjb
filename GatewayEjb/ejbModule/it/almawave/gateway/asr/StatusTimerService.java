@@ -17,9 +17,11 @@ import javax.ejb.TimerService;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.jboss.logging.Logger;
 
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import it.almawave.gateway.configuration.PropertiesBean;
 import it.almawave.gateway.crm.CRMClient;
 import it.almawave.gateway.db.DbManager;
 import it.almawave.gateway.db.bean.CRMRequestBean;
@@ -34,6 +36,8 @@ import it.pervoice.ws.audiomabox.service.download._1.DownloadFault;
 import it.pervoice.ws.audiomabox.service.download._1.DownloadWS;
 import it.pervoice.ws.audiomabox.service.status._1.StatusFault;
 import it.pervoice.ws.audiomabox.service.status._1.StatusWS;
+
+
 
 /**
  * Session Bean implementation class StatusTimerService
@@ -50,13 +54,13 @@ public class StatusTimerService {
 	private String identificativo = null;
 	//EXT_ID
 	private String idDifformita;
+
 	
 	@EJB
 	CRMClient crm;
 	
 	@EJB
 	DbManager dbM;
-    
     
     @Resource
     private TimerService timerService;
@@ -67,7 +71,7 @@ public class StatusTimerService {
 
     //@PostConstruct
     public void init(String id, String idDifformita) {
-    	
+
         this.identificativo = id;
         this.idDifformita = idDifformita;
         
@@ -75,13 +79,14 @@ public class StatusTimerService {
     	timerConfig.setInfo("StatusTimerService_"+this.getIdentificativo());
     	LOGGER.info("Timer initial duration and internal duration: "+propertiesBean.getInitialDuration()+" "+ propertiesBean.getInternalDuration());
     	timerService.createIntervalTimer(propertiesBean.getInitialDuration(), propertiesBean.getInternalDuration(), timerConfig); //ogni 5 sec 
-    	
+
     }
     
 	@Timeout
 	public void execute(Timer timer) {
 		
 		
+
 		try {
 			
 			LOGGER.info("Timer Service : " + timer.getInfo());
@@ -177,6 +182,7 @@ public class StatusTimerService {
 			timer.cancel();
 		} 
 		
+
 	}
 
         
@@ -195,8 +201,7 @@ public class StatusTimerService {
 	public void setIdDifformita(String idDifformita) {
 		this.idDifformita = idDifformita;
 	}
-    
-    
+ 
 
 
 }
