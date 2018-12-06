@@ -85,8 +85,6 @@ public class StatusTimerService {
 	@Timeout
 	public void execute(Timer timer) {
 		
-		
-
 		try {
 			
 			LOGGER.info("Timer Service : " + timer.getInfo());
@@ -120,7 +118,6 @@ public class StatusTimerService {
 			if(job.getStatus().value().equals(EnumStatusType.FAILED.value())) {
 				//registrare errore nel db nessun job trovato per identificativo inserito
 				dbM.modificaStato(this.idDifformita, 150);
-				
 				LOGGER.info("_______ job terminato con errore : " + job.getErrCode());
 				timer.cancel();
 				return;
@@ -141,13 +138,14 @@ public class StatusTimerService {
 				String testo = " INDEBITA DISPOSIZIONE A VIA IMPEDITA SEGNALE DI PARTENZA al km 16+300 Roma Anagnina";
 				
 				//salvare il testo nella tabella request per EXT_ID
+				dbM.inserisciTesto(idDifformita, testo);
 				
 				//chiamo il servizio cmr
 				crm.initClient("10.121.172.40", 8080, "iride", "Iride.123");
 				
 				CRMRequestBean bean = new CRMRequestBean();
 				List<String> classificationLogicList = new ArrayList<String>();
-				//TODO: classificationLogicList
+				//TODO: comporre il classificationLogicList
 				classificationLogicList.add("Visita Al Binario a Piedi");
 				bean.setClassificationLogicList(classificationLogicList);
 				bean.setTextMessage(testo);

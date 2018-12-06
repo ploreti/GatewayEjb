@@ -40,6 +40,7 @@ public class DbManager {
 		_request.setDTP(request.getDtp());
 		_request.setSPECIALIZZAZIONE(request.getSpecializzazione());
 		_request.setAUDIOMA_ID(Long.valueOf(id));
+		_request.setSTART_DATE(new Date());
 
 		RequestStatus _requestStatus = new RequestStatus();
 
@@ -67,7 +68,15 @@ public class DbManager {
     	
     }
     
-
+    public void inserisciTesto(String idDifformita, String testo) {
+    	
+    	//leggere la request
+    	
+    	//converite il testo in array di byte
+    	
+    	//modificare il record
+    	
+    }
     
     
     public String leggiStato(String idDifformità) {
