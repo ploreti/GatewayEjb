@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 
+import javax.ejb.LocalBean;
+import javax.ejb.Stateless;
+
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -19,8 +22,9 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.jboss.logging.Logger;
-
-public class CRMClient {
+@Stateless
+@LocalBean
+public class CRMClient{
 	private static final Logger LOGGER = Logger.getLogger(CRMClient.class);
 	private CloseableHttpClient httpclient;	
 	private HttpHost targetHost;
@@ -34,11 +38,11 @@ public class CRMClient {
 	public CRMClient() {
 	}
 
-	public void initClient(String host, int port,String username, String password) {
+	public void initClient(String host, int port, String username, String password) {
 		initClient(host,port,username,password,true);
 	}
 
-	public void initClient(String host, int port,String username, String password,boolean authenticationNeed) {
+	public void initClient(String host, int port, String username, String password,boolean authenticationNeed) {
 		httpclient = HttpClientBuilder.create().build();
 		targetHost = new HttpHost(host, port, "http");
 		context = HttpClientContext.create();
@@ -57,7 +61,7 @@ public class CRMClient {
 
 	}
 
-	public CloseableHttpResponse doPostJson(String query,String endpoint) {
+	public CloseableHttpResponse doPostJson(String query, String endpoint) {
 		StringEntity entity;		
 		CloseableHttpResponse response = null;
 		httppost = new HttpPost(endpoint);
