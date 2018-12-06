@@ -23,7 +23,7 @@ public class ServiceUpload {
 	private static final Logger LOGGER = Logger.getLogger(ServiceUpload.class);
 	private UploadWS uploadWS = null;
 	//TODO: configurare con le properties
-	private String serviceUploadUrl = "";
+	private String serviceUploadUrl = "http://10.121.193.80:80/audioma-ws/uploadService/";
 
 	public ServiceUpload() throws MalformedURLException {
 		

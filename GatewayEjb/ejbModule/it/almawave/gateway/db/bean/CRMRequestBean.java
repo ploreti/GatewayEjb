@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "textMessage",
     "classificationLogicList"
 })
-public class CRMRequest {
+public class CRMRequestBean {
 
     @JsonProperty("textMessage")
     private String textMessage;
