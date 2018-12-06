@@ -141,7 +141,7 @@ public class StatusTimerService {
 				dbM.inserisciTesto(idDifformita, testo);
 				
 				//chiamo il servizio cmr
-				crm.initClient("10.121.172.40", 8080, "iride", "Iride.123");
+				crm.initClient(propertiesBean.getCrmHost(), propertiesBean.getCrmPort(), "iride", "Iride.123");
 				
 				CRMRequestBean bean = new CRMRequestBean();
 				List<String> classificationLogicList = new ArrayList<String>();
