@@ -141,7 +141,7 @@ public class StatusTimerService {
 				dbM.inserisciTesto(idDifformita, testo);
 				
 				//chiamo il servizio cmr
-				crm.initClient(propertiesBean.getCrmHost(), propertiesBean.getCrmPort(), "iride", "Iride.123");
+				crm.initClient(propertiesBean.getCrmHost(), propertiesBean.getCrmPort(), propertiesBean.getCrmUser(), propertiesBean.getCrmPassword());
 				
 				CRMRequestBean bean = new CRMRequestBean();
 				List<String> classificationLogicList = new ArrayList<String>();
@@ -152,7 +152,7 @@ public class StatusTimerService {
 				ObjectMapper objectMapper = new ObjectMapper();
 		        String jsonString = objectMapper.writeValueAsString(bean);
 
-		        CloseableHttpResponse crmResponse = crm.doPostJson(jsonString, "crm-visiteinlinea-api/api/crm-prompter-ws/startClassification");
+		        CloseableHttpResponse crmResponse = crm.doPostJson(jsonString, propertiesBean.getCrmClassificationEndPoint());
 		        
 		        //TODO:salvare le triplette nel db
 		        
