@@ -21,7 +21,7 @@ public class ServiceStatus {
 	private static final Logger LOGGER = Logger.getLogger(ServiceStatus.class);
 	private StatusWS statusWS = null;
 	//TODO: configurare con le properties
-	private String serviceStatusUrl = "";
+	private String serviceStatusUrl = "http://10.121.193.80:80/audioma-ws/statusService/";
 
 	public ServiceStatus() throws MalformedURLException {
 		
