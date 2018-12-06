@@ -20,6 +20,7 @@ import org.apache.commons.io.FileUtils;
 
 import it.almawave.gateway.asr.ServiceUpload;
 import it.almawave.gateway.asr.StatusTimerService;
+import it.almawave.gateway.configuration.PropertiesBean;
 import it.almawave.gateway.db.bean.DoRequestBean;
 import it.almawave.gateway.internal.Request;
 import it.almawave.gateway.internal.RequestStatus;
@@ -42,7 +43,7 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 
 	@EJB
 	StatusTimerService st;
-
+	
 	@EJB
 	Test test;
 	//	@Resource
@@ -70,7 +71,7 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 			ByteArrayDataSource rawData = new ByteArrayDataSource(data,"application/octet-stream");
 
 			//chamare il servizio uploadService
-			UploadWS service = new ServiceUpload().getService(); 
+			//UploadWS service = new ServiceUpload().getService(); 
 
 			UploadRequest uploadRequest = new UploadRequest();
 			//file
@@ -85,9 +86,11 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 			//TODO: finire di completare la riquest
 
 			//recuperare id dalla respons
-			UploadResponse uploadResponse = service.upload(uploadRequest);
-			String id = String.valueOf(uploadResponse.getJobElement().get(0).getJobId());
-
+			//UploadResponse uploadResponse = service.upload(uploadRequest);
+			//String id = String.valueOf(uploadResponse.getJobElement().get(0).getJobId());
+             //PER TEST
+			String id="1000";
+			
 			//memorizzare nel db la requeste e lo status
 			Request _request = new Request();
 			_request.setEXT_ID(request.getIdDifformita());
@@ -102,23 +105,25 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 
 			_requestStatus.setEXT_ID(request.getIdDifformita());
 			_requestStatus.setINSERT_DATE(new Date());
-			_requestStatus.setSTATUS(1);
+			_requestStatus.setSTATUS(100);
 			_requestStatus.setSYSTEM_ID(1);
 
 			em.persist(_request);
 			em.persist(_requestStatus);
 
 			//laciare il timer per il recupero dello status
-			st = new StatusTimerService(id, request.getIdDifformita());
-
+			//st = new StatusTimerService(id, request.getIdDifformita());
+			st.init(id, request.getIdDifformita()) ;
 			return request.getIdDifformita();
 
 		}catch (FileNotFoundException e) {
 			return "File audio non trovato";
-		} catch (UploadFault e) {
-			e.printStackTrace();
-			return "Errore nella chiata al servizio Upload di PerVoice";
-		}catch (Exception e) {
+		} 
+//		catch (UploadFault e) {
+//			e.printStackTrace();
+//			return "Errore nella chiata al servizio Upload di PerVoice";
+//		}
+		catch (Exception e) {
 			return "Nessuna richiesta è stata inserita";
 		}finally {
 

@@ -4,6 +4,7 @@ import java.util.Date;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
 import javax.ejb.Timeout;
@@ -13,12 +14,16 @@ import javax.ejb.TimerService;
 
 import org.jboss.logging.Logger;
 
+import it.almawave.gateway.configuration.PropertiesBean;
+
 /**
  * Session Bean implementation class StatusTimerService
  */
 @Singleton
 @LocalBean
 public class StatusTimerService {
+	@EJB
+	PropertiesBean propertiesBean;
 	
 	private static final Logger LOGGER = Logger.getLogger(StatusTimerService.class);
 
@@ -26,7 +31,7 @@ public class StatusTimerService {
 	private String identificativo = null;
 	//EXT_ID
 	private String idDifformita;
-    
+	int count;
     
     @Resource
     private TimerService timerService;
@@ -34,18 +39,27 @@ public class StatusTimerService {
     public StatusTimerService() {
 
     }
+    
     public StatusTimerService(String id, String idDifformita) {
+//        this.identificativo = id;
+//        this.idDifformita = idDifformita;
+//        
+//        TimerConfig timerConfig = new TimerConfig();
+//    	timerConfig.setInfo("StatusTimerService_"+this.getIdentificativo());
+//    	timerService.createIntervalTimer(5000, 5000, timerConfig); //ogni 5 sec 
+    }
+
+    //@PostConstruct
+    public void init(String id, String idDifformita) {
         this.identificativo = id;
         this.idDifformita = idDifformita;
         
         TimerConfig timerConfig = new TimerConfig();
     	timerConfig.setInfo("StatusTimerService_"+this.getIdentificativo());
-    	timerService.createIntervalTimer(5000, 5000, timerConfig); //ogni 5 sec 
-    }
-
-    @PostConstruct
-    private void init() {
+    	LOGGER.info("Timer initial duration and internal duration: "+propertiesBean.getInitialDuration()+" "+ propertiesBean.getInternalDuration());
+    	timerService.createIntervalTimer(propertiesBean.getInitialDuration(), propertiesBean.getInternalDuration(), timerConfig); //ogni 5 sec 
     	
+    	count=0;
     }
     
 	@Timeout
@@ -63,11 +77,13 @@ public class StatusTimerService {
 		LOGGER.info("Execution Time : " + new Date());
 		LOGGER.info("____________________________________________");
 		
+		if(count<3) { count++;}
+		else {
+			timer.cancel();
+		}
+		
 		if (identificativo == null)
 			timer.cancel();
-		
-
-		
 	}
 
         
@@ -86,8 +102,7 @@ public class StatusTimerService {
 	public void setIdDifformita(String idDifformita) {
 		this.idDifformita = idDifformita;
 	}
-    
-    
+ 
 
 
 }
