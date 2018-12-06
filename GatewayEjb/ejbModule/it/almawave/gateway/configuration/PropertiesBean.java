@@ -22,6 +22,8 @@ public class PropertiesBean {
 	private String crmClassificationEndPoint;
 	private int initialDuration;
 	private int internalDuration;
+	private String crmUser;
+	private String crmPassword;
 	
 	@PostConstruct
 	public void initialize() {
@@ -39,6 +41,8 @@ public class PropertiesBean {
             this.setInitialDuration(Integer.parseInt(prop.getProperty("initialDuration")));
             this.setInternalDuration(Integer.parseInt(prop.getProperty("internalDuration")));
             this.setCrmClassificationEndPoint(prop.getProperty("crmClassificationEndPoint"));
+            this.setCrmUser(prop.getProperty("crmUser"));
+            this.setCrmPassword(prop.getProperty("crmPassword"));
 			
 		} catch (FileNotFoundException e) {
 				e.printStackTrace();
@@ -99,5 +103,21 @@ public class PropertiesBean {
 
 	public void setCrmClassificationEndPoint(String crmClassificationEndPoint) {
 		this.crmClassificationEndPoint = crmClassificationEndPoint;
+	}
+
+	public String getCrmUser() {
+		return crmUser;
+	}
+
+	public void setCrmUser(String crmUser) {
+		this.crmUser = crmUser;
+	}
+
+	public String getCrmPassword() {
+		return crmPassword;
+	}
+
+	public void setCrmPassword(String crmPassword) {
+		this.crmPassword = crmPassword;
 	}
 }
