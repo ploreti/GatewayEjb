@@ -1,5 +1,6 @@
 package it.almawave.gateway.db;
 
+import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import it.almawave.gateway.db.bean.DoRequestBean;
+import it.almawave.gateway.db.excption.DbException;
 import it.almawave.gateway.internal.Request;
 import it.almawave.gateway.internal.RequestStatus;
 
@@ -68,23 +70,36 @@ public class DbManager {
     	
     }
     
-    public void inserisciTesto(String idDifformita, String testo) {
+    public void inserisciTesto(String idDifformita, String testo) throws DbException {
     	
-    	//leggere la request
+    	//leggere la Request
+    	Query query = em.createNamedQuery("Request.findByExtId");
+    	query.setParameter("extID", idDifformita);
+    	List<Request> results = query.getResultList();
+
+		if (results.isEmpty())
+			throw new DbException("Nessuna richiesta è stata trovata");
+		
+		Request richiesta = results.get(0);
     	
     	//converite il testo in array di byte
+    	byte[] txt = testo.getBytes(Charset.forName("UTF-8"));
     	
-    	//modificare il record
+    	//String string = new String(byte[] bytes, Charset charset);
+    	
+    	richiesta.setTXT(txt);
+    	
+    	em.merge(richiesta);
     	
     }
     
     
-    public String leggiStato(String idDifformità) {
+    public String leggiStato(String idDifformita) {
     	Query query = em.createNamedQuery("RequestStatus.findStatusByExtId");
-		query.setParameter("extID", idDifformità);
+		query.setParameter("extID", idDifformita);
 		List results = query.getResultList();
 
-		if (!results.isEmpty())
+		if (results.isEmpty())
 			return "Nessuna richiesta è stata trovata";
 
 		return ((Integer)results.get(0)).toString();

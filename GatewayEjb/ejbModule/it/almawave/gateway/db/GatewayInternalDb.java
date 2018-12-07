@@ -18,6 +18,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import org.apache.commons.io.FileUtils;
+import org.jboss.logging.Logger;
 
 import it.almawave.gateway.asr.ServiceUpload;
 import it.almawave.gateway.asr.StatusTimerService;
@@ -44,6 +45,8 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 
 	@EJB
 	StatusTimerService st;
+	
+	private static final Logger LOGGER = Logger.getLogger(GatewayInternalDb.class);
 
 	//	@Resource
 	//	private SessionContext sessionContext;
@@ -126,6 +129,49 @@ public class GatewayInternalDb implements GatewayInternalDbRemote, GatewayIntern
 
 		}
 
+	}
+	
+	
+	public String tester() {
+		
+		String messaggio = "modificato";
+		
+		try {
+			
+			 //dbM.inserisciTesto("aaaa111", "INDEBITA DISPOSIZIONE A VIA IMPEDITA SEGNALE DI PARTENZA al km 16+300 Roma Anagnina");
+			 //dbM.modificaStato("aaaa111", 110);
+			
+			File file = new File("/opt/visiteinlinea/simulator/Registrazione.m4a"); 
+			byte[] data = FileUtils.readFileToByteArray(file);
+			ByteArrayDataSource rawData = new ByteArrayDataSource(data,"application/octet-stream");
+			
+			LOGGER.info("----------------- file letto + " + file.getName());
+			
+			UploadWS service = new ServiceUpload().getService(); 
+			
+			UploadRequest uploadRequest = new UploadRequest();
+			//file
+			RemoteFile remoteFile = new RemoteFile();
+			FileType fileType = new FileType(); 
+			fileType.setName(file.getName());
+			DataHandler dataHandler =  new DataHandler(rawData);
+			fileType.setData(dataHandler);
+			remoteFile.setFile(fileType);
+			uploadRequest.setRemoteFile(remoteFile);
+			
+			UploadResponse uploadResponse = service.upload(uploadRequest);
+			
+			messaggio += uploadResponse.toString();
+
+		}catch (Exception e) {
+			e.printStackTrace();
+			return "Errore : " + e.getMessage();
+		}finally {
+
+		}
+		
+		return messaggio;
+		
 	}
 
 

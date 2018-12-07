@@ -25,6 +25,7 @@ import it.almawave.gateway.configuration.PropertiesBean;
 import it.almawave.gateway.crm.CRMClient;
 import it.almawave.gateway.db.DbManager;
 import it.almawave.gateway.db.bean.CRMRequestBean;
+import it.almawave.gateway.db.excption.DbException;
 import it.pervoice.audiomabox.commontypes._1.OutputType;
 import it.pervoice.audiomabox.services.common._1.EnumStatusType;
 import it.pervoice.audiomabox.services.download._1.DownloadRequest;
@@ -176,6 +177,11 @@ public class StatusTimerService {
 		} catch (JsonProcessingException e) {
 			dbM.modificaStato(this.idDifformita, 180);
 			LOGGER.error("_______ ERRORE conversione json________");
+			e.printStackTrace();
+			timer.cancel();
+		} catch (DbException e) {
+			dbM.modificaStato(this.idDifformita, 190);
+			LOGGER.error("_______ ERRORE salvataggio del testo________");
 			e.printStackTrace();
 			timer.cancel();
 		} 

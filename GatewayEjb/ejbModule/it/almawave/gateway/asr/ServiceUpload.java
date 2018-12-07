@@ -4,6 +4,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 import javax.xml.ws.Binding;
@@ -32,21 +33,31 @@ public class ServiceUpload {
 		URL baseUrl =  it.pervoice.ws.audiomabox.service.upload._1.UploadWSService.class.getResource(".");
 		URL url = new URL(baseUrl, serviceUploadUrl);
 		
-		UploadWSService service = null;
-		service = new UploadWSService(url, new QName("http://ws.pervoice.it/audiomabox/service/Upload/1.0/", "UploadWSService"));
+		LOGGER.info("----------------- baseUrl  " + baseUrl.toString());
+		LOGGER.info("----------------- url  " + url.toString());
+		
+		UploadWSService service = new UploadWSService();
+		//service = new UploadWSService(url, new QName("http://ws.pervoice.it/audiomabox/service/Upload/1.0/", "UploadWSService"));
 
-		UploadWS port = service.getPort(UploadWS.class);
-		BindingProvider bp = (BindingProvider)port;
-		bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, serviceUploadUrl);
-		Binding binding = bp.getBinding();
-
-		// Add the logging handler
-		List<Handler> handlerList = binding.getHandlerChain();
-		if (handlerList == null)
-			handlerList = new ArrayList();
-		LoggingHandler loggingHandler = new LoggingHandler();
-		handlerList.add(loggingHandler);
-		binding.setHandlerChain(handlerList);
+		LOGGER.info("----------------- service istanziato + " + service.getWSDLDocumentLocation().getFile());
+		uploadWS = service.getUploadWSSoap11();
+		
+		// Add username and password for Basic Authentication
+		Map<String, Object> reqContext = ((BindingProvider) uploadWS).getRequestContext();
+		reqContext.put(BindingProvider.USERNAME_PROPERTY, "username");
+		reqContext.put(BindingProvider.PASSWORD_PROPERTY, "password");
+		
+//		BindingProvider bp = (BindingProvider)port;
+//		bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, serviceUploadUrl);
+//		Binding binding = bp.getBinding();
+//
+//		// Add the logging handler
+//		List<Handler> handlerList = binding.getHandlerChain();
+//		if (handlerList == null)
+//			handlerList = new ArrayList();
+//		LoggingHandler loggingHandler = new LoggingHandler();
+//		handlerList.add(loggingHandler);
+//		binding.setHandlerChain(handlerList);
 
 		LOGGER.info("[Costrutture Service Upload ENDED]");
 
