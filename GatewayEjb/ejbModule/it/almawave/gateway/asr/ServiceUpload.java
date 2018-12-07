@@ -44,8 +44,8 @@ public class ServiceUpload {
 		
 		// Add username and password for Basic Authentication
 		Map<String, Object> reqContext = ((BindingProvider) uploadWS).getRequestContext();
-		reqContext.put(BindingProvider.USERNAME_PROPERTY, "username");
-		reqContext.put(BindingProvider.PASSWORD_PROPERTY, "password");
+		reqContext.put(BindingProvider.USERNAME_PROPERTY, "abox");
+		reqContext.put(BindingProvider.PASSWORD_PROPERTY, "ab0x");
 		
 //		BindingProvider bp = (BindingProvider)port;
 //		bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, serviceUploadUrl);

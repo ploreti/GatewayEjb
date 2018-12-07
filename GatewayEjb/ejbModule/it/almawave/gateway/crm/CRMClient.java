@@ -101,9 +101,16 @@ public class CRMClient{
 		return result;
 	}
 
-	private String decodeBase64(String encodedString) {
+	public String decodeBase64(String encodedString) {
 		byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
 		String decodedString = new String(decodedBytes);
 		return decodedString;
+	}
+	
+	public static void main(String[] args) {
+		
+		CRMClient client =  new CRMClient();
+		System.out.println(client.decodeBase64("YWJveDphYjB4"));
+		
 	}
 }
