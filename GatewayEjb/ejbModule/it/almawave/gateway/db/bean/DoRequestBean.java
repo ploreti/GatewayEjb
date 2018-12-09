@@ -54,8 +54,4 @@ public class DoRequestBean implements Serializable{
 	public void setSpecializzazione(String specializzazione) {
 		this.specializzazione = specializzazione;
 	}
-	
-	
-
-
 }

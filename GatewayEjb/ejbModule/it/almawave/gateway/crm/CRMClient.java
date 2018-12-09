@@ -2,8 +2,14 @@ package it.almawave.gateway.crm;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
+import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 
@@ -12,6 +18,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -19,12 +26,24 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.jboss.logging.Logger;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import it.almawave.gateway.bean.GatewayResponse;
+import it.almawave.gateway.bean.Tuple;
+import it.almawave.gateway.configuration.PropertiesBean;
+import it.almawave.gateway.crm.bean.StartClassficationVOOut;
+import it.almawave.gateway.db.bean.CRMRequestBean;
 @Stateless
 @LocalBean
 public class CRMClient{
+	@EJB
+	PropertiesBean propertiesBean;
+	
 	private static final Logger LOGGER = Logger.getLogger(CRMClient.class);
 	private CloseableHttpClient httpclient;	
 	private HttpHost targetHost;
@@ -90,6 +109,53 @@ public class CRMClient{
 		} catch (IOException e) {
 			LOGGER.error(e.getMessage());
 		}
+	}
+
+	public GatewayResponse startClassification() throws HttpResponseException, IOException {
+		GatewayResponse gr=new GatewayResponse();
+		String testo = "abrasioni su piano rotolamento corda alt dal chilometro 206+470 206+570";
+		
+		CRMRequestBean bean = new CRMRequestBean();
+		List<String> classificationLogicList = new ArrayList<String>();
+		//TODO: comporre il classificationLogicList
+		classificationLogicList.add("Visita Al Binario a Piedi");
+		bean.setClassificationLogicList(classificationLogicList);
+		bean.setTextMessage(testo);
+		ObjectMapper objectMapper = new ObjectMapper();
+		String jsonString = objectMapper.writeValueAsString(bean);
+
+		CloseableHttpResponse crmResponse = doPostJson(jsonString, propertiesBean.getCrmClassificationEndPoint());
+		String responseString=new BasicResponseHandler().handleResponse(crmResponse);
+		ObjectMapper om=new ObjectMapper();
+		StartClassficationVOOut startClssificationObject=om.readValue(responseString, StartClassficationVOOut.class);
+
+		Map<String,Object> addProp=startClssificationObject.getAdditionalProperties();
+		Iterator<String> keyIterator=addProp.keySet().iterator();
+		while(keyIterator.hasNext()) {
+			System.out.println("-----------------"+keyIterator.next());
+		}
+
+		ArrayList<LinkedHashMap<String,Object>> tupleScores=(ArrayList<LinkedHashMap<String,Object>>)addProp.get("tupleScores");
+		
+        
+        List<Tuple> tupleList=new ArrayList<Tuple>();
+        
+		tupleScores.forEach(item->{
+			Tuple tuple=new Tuple();
+			tuple.setValue((String)item.get("label"));
+			tuple.setRank((Integer)item.get("rankPosition"));
+			System.out.println(item.get("label"));
+			System.out.println(item.get("rankPosition"));
+			tupleList.add(tuple);
+		}
+				);
+		
+		String plainText=(String)addProp.get("plainText");
+		System.out.println(plainText);
+		gr.setTuples(tupleList);
+		gr.setPlainText(plainText);
+
+		return gr;
 	}
 
 	public String[] getUserPawwsord(String token) {
