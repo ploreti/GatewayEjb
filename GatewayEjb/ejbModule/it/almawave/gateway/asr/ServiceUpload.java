@@ -28,6 +28,8 @@ public class ServiceUpload {
 
 	public ServiceUpload() throws MalformedURLException {
 		
+		try {
+		
 		LOGGER.info("[Costrutture Service Upload INVOKED]");
 
 		URL baseUrl =  it.pervoice.ws.audiomabox.service.upload._1.UploadWSService.class.getResource(".");
@@ -47,19 +49,23 @@ public class ServiceUpload {
 		reqContext.put(BindingProvider.USERNAME_PROPERTY, "abox");
 		reqContext.put(BindingProvider.PASSWORD_PROPERTY, "ab0x");
 		
-//		BindingProvider bp = (BindingProvider)port;
-//		bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, serviceUploadUrl);
-//		Binding binding = bp.getBinding();
-//
-//		// Add the logging handler
-//		List<Handler> handlerList = binding.getHandlerChain();
-//		if (handlerList == null)
-//			handlerList = new ArrayList();
-//		LoggingHandler loggingHandler = new LoggingHandler();
-//		handlerList.add(loggingHandler);
-//		binding.setHandlerChain(handlerList);
+		BindingProvider bp = (BindingProvider)uploadWS;
+		bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, serviceUploadUrl);
+		Binding binding = bp.getBinding();
+
+		// Add the logging handler
+		List<Handler> handlerList = binding.getHandlerChain();
+		if (handlerList == null)
+			handlerList = new ArrayList();
+		LoggingHandler loggingHandler = new LoggingHandler();
+		handlerList.add(loggingHandler);
+		binding.setHandlerChain(handlerList);
 
 		LOGGER.info("[Costrutture Service Upload ENDED]");
+		
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
 
 	}
 
