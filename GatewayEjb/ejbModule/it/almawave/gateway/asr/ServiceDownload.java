@@ -4,6 +4,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 import javax.xml.ws.Binding;
@@ -20,21 +21,30 @@ public class ServiceDownload {
 	
 	private static final Logger LOGGER = Logger.getLogger(ServiceDownload.class);
 	private DownloadWS downloadWS = null;
-	//TODO: configurare con le properties
-	private String serviceDownloadUrl = "http://10.121.193.80:80/audioma-ws/downloadService/";
 
-	public ServiceDownload() throws MalformedURLException {
+
+	public ServiceDownload(String serviceDownloadUrl, String username, String password) throws MalformedURLException {
 		
 		LOGGER.info("[Costrutture Service Download INVOKED]");
 
 		URL baseUrl =  it.pervoice.ws.audiomabox.service.download._1.DownloadWSService.class.getResource(".");
 		URL url = new URL(baseUrl, serviceDownloadUrl);
 		
-		DownloadWSService service = null;
-		service = new DownloadWSService(url, new QName("http://ws.pervoice.it/audiomabox/service/Download/1.0/", "DownloadWSService"));
+		LOGGER.info("----------------- url  " + url.toString());
+		
+		DownloadWSService service = new DownloadWSService();
+		//service = new DownloadWSService(url, new QName("http://ws.pervoice.it/audiomabox/service/Download/1.0/", "DownloadWSService"));
+		
+		LOGGER.info("----------------- service istanziato");
 
-		DownloadWS port = service.getPort(DownloadWS.class);
-		BindingProvider bp = (BindingProvider)port;
+		downloadWS = service.getDownloadWSSoap11();
+		
+		// Add username and password for Basic Authentication
+		Map<String, Object> reqContext = ((BindingProvider) downloadWS).getRequestContext();
+		reqContext.put(BindingProvider.USERNAME_PROPERTY, username);
+		reqContext.put(BindingProvider.PASSWORD_PROPERTY, password);
+		
+		BindingProvider bp = (BindingProvider)downloadWS;
 		bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, serviceDownloadUrl);
 		Binding binding = bp.getBinding();
 

@@ -1,18 +1,11 @@
 package it.almawave.gateway;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.activation.FileDataSource;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.ejb.EJB;
@@ -22,23 +15,14 @@ import javax.ejb.Timeout;
 import javax.ejb.Timer;
 import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.jboss.logging.Logger;
-
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.almawave.gateway.asr.ServiceDownload;
 import it.almawave.gateway.asr.ServiceStatus;
@@ -47,10 +31,8 @@ import it.almawave.gateway.bean.GatewayResponse;
 import it.almawave.gateway.configuration.PropertiesBean;
 import it.almawave.gateway.crm.CRMClient;
 import it.almawave.gateway.db.DbManager;
-import it.almawave.gateway.db.bean.CRMRequestBean;
 import it.almawave.gateway.db.excption.DbException;
 import it.pervoice.audiomabox.commontypes._1.OutputType;
-import it.pervoice.audiomabox.services.common._1.ClientInfoType;
 import it.pervoice.audiomabox.services.common._1.EnumStatusType;
 import it.pervoice.audiomabox.services.common._1.FaultType;
 import it.pervoice.audiomabox.services.download._1.DownloadRequest;
@@ -147,6 +129,10 @@ public class GatewayManager {
 				GatewayResponse crmResponse = startClassification(testo);
 
 				//TODO:salvare le triplette nel db
+				
+				LOGGER.info("_______ processo concluso ________");
+				//mofico lo stato in concluso
+				dbM.modificaStato(this.idDifformita, 110);
 
 			}
 
@@ -207,7 +193,7 @@ public class GatewayManager {
 		
 		String stato = "";
 		
-		StatusWS serviceS = new ServiceStatus().getService();
+		StatusWS serviceS = new ServiceStatus(propertiesBean.getAsrStatusUrl(), propertiesBean.getAsrUser(), propertiesBean.getAsrPassword()).getService();
 
 		StatusRequest statusRequest = new StatusRequest();
 		statusRequest.setClientInfo(UtilsAsr.popolaclientInfo());
@@ -217,7 +203,6 @@ public class GatewayManager {
 		if (statusResponse.getJob().isEmpty()) {
 			LOGGER.error("_______ job NON trovato ________");
 			//registrare errore nel db nessun job trovato per identificativo inserito
-			dbM.modificaStato(this.idDifformita, 150);
 			throw new StatusFault("nessun job trovato per identificativo inserito " + identificativo, null) ;
 		} 
 
@@ -227,7 +212,6 @@ public class GatewayManager {
 		//job in errore 
 		if(job.getStatus().value().equals(EnumStatusType.FAILED.value())) {
 			//registrare errore nel db nessun job trovato per identificativo inserito
-			dbM.modificaStato(this.idDifformita, 150);
 			LOGGER.info("_______ job terminato con errore : " + job.getErrCode());
 			FaultType fault = new FaultType();
 			fault.setErrorCode(String.valueOf( job.getErrCode() ));
@@ -246,7 +230,7 @@ public class GatewayManager {
 		
 		String testo ="";
 		
-		DownloadWS serviceD = new ServiceDownload().getService();
+		DownloadWS serviceD = new ServiceDownload(propertiesBean.getAsrDownloadUrl(), propertiesBean.getAsrUser(), propertiesBean.getAsrPassword()).getService();
 		DownloadRequest downloadRequest = new DownloadRequest();
 		
 		downloadRequest.setClientInfo(UtilsAsr.popolaclientInfo());

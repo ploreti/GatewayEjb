@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.almawave.gateway.GatewayServicesLocal;
 import it.almawave.gateway.GatewayServicesRemote;
 import it.almawave.gateway.asr.ServiceUpload;
+import it.almawave.gateway.asr.UtilsAsr;
 import it.almawave.gateway.bean.GatewayResponse;
 import it.almawave.gateway.bean.Tuple;
 import it.almawave.gateway.configuration.PropertiesBean;
@@ -38,6 +39,10 @@ import it.almawave.gateway.db.DbManager;
 import it.almawave.gateway.db.bean.CRMRequestBean;
 import it.almawave.gateway.db.bean.DoRequestBean;
 import it.pervoice.audiomabox.commontypes._1.FileType;
+import it.pervoice.audiomabox.commontypes._1.StepTypeEnum;
+import it.pervoice.audiomabox.commontypes._1.UploadTypeEnum;
+import it.pervoice.audiomabox.services.common._1.PriorityType;
+import it.pervoice.audiomabox.services.upload._1.OutputFormatType;
 import it.pervoice.audiomabox.services.upload._1.UploadRequest;
 import it.pervoice.audiomabox.services.upload._1.UploadRequest.RemoteFile;
 import it.pervoice.audiomabox.services.upload._1.UploadResponse;
@@ -90,9 +95,11 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 			ByteArrayDataSource rawData = new ByteArrayDataSource(data,"application/octet-stream");
 
 			//chamare il servizio uploadService
-//			UploadWS service = new ServiceUpload().getService(); 
-//
-//			UploadRequest uploadRequest = new UploadRequest();
+//			UploadWS service = new ServiceUpload(propertiesBean.getAsrUploadUrl(), propertiesBean.getAsrUser(), propertiesBean.getAsrPassword()).getService(); 
+
+			UploadRequest uploadRequest = new UploadRequest();
+			uploadRequest.setClientInfo(UtilsAsr.popolaclientInfo());
+			
 			//file
 			RemoteFile remoteFile = new RemoteFile();
 			FileType fileType = new FileType(); 
@@ -100,10 +107,20 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 			DataHandler dataHandler =  new DataHandler(rawData);
 			fileType.setData(dataHandler);
 			remoteFile.setFile(fileType);
+			uploadRequest.setRemoteFile(remoteFile);
 			
-//			uploadRequest.setRemoteFile(remoteFile);
-
-			//TODO: finire di completare la request
+			uploadRequest.setUploadType(UploadTypeEnum.REMOTE_FILE);
+			uploadRequest.setCustomerProvidedId("1");
+			uploadRequest.setManualRevision(true);
+			uploadRequest.setDomainId("ita_ITA_STND_NEWS-ita_ITA_STND_W_DGM");
+			uploadRequest.setPunctuationEnabled(true);
+			
+			PriorityType priorityType = new PriorityType();
+			priorityType.setCode("HIGH");
+			uploadRequest.setPriority(priorityType);
+			
+			uploadRequest.setStep(StepTypeEnum.ONE_STEP);
+			uploadRequest.getOutputFormats().add(OutputFormatType.PVT);
 
 			//recuperare id dalla respons
 //			UploadResponse uploadResponse = service.upload(uploadRequest);
@@ -168,21 +185,21 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 
 			LOGGER.info("----------------- file letto + " + file.getName());
 
-			UploadWS service = new ServiceUpload().getService(); 
-
-			UploadRequest uploadRequest = new UploadRequest();
-			//file
-			RemoteFile remoteFile = new RemoteFile();
-			FileType fileType = new FileType(); 
-			fileType.setName(file.getName());
-			DataHandler dataHandler =  new DataHandler(rawData);
-			fileType.setData(dataHandler);
-			remoteFile.setFile(fileType);
-			uploadRequest.setRemoteFile(remoteFile);
-
-			UploadResponse uploadResponse = service.upload(uploadRequest);
-
-			messaggio += uploadResponse.toString();
+//			UploadWS service = new ServiceUpload(propertiesBean.getAsrUploadUrl(), propertiesBean.getAsrUser(), propertiesBean.getAsrPassword()).getService(); 
+//
+//			UploadRequest uploadRequest = new UploadRequest();
+//			//file
+//			RemoteFile remoteFile = new RemoteFile();
+//			FileType fileType = new FileType(); 
+//			fileType.setName(file.getName());
+//			DataHandler dataHandler =  new DataHandler(rawData);
+//			fileType.setData(dataHandler);
+//			remoteFile.setFile(fileType);
+//			uploadRequest.setRemoteFile(remoteFile);
+//
+//			UploadResponse uploadResponse = service.upload(uploadRequest);
+//
+//			messaggio += uploadResponse.toString();
 
 		}catch (Exception e) {
 			e.printStackTrace();

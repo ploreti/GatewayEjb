@@ -24,6 +24,12 @@ public class PropertiesBean {
 	private int internalDuration;
 	private String crmUser;
 	private String crmPassword;
+	private String asrUploadUrl;
+	private String asrDownloadUrl;
+	private String asrStatusUrl;
+	private String asrUser;
+	private String asrPassword;
+	
 	
 	@PostConstruct
 	public void initialize() {
@@ -43,6 +49,12 @@ public class PropertiesBean {
             this.setCrmClassificationEndPoint(prop.getProperty("crmClassificationEndPoint"));
             this.setCrmUser(prop.getProperty("crmUser"));
             this.setCrmPassword(prop.getProperty("crmPassword"));
+            
+            this.setAsrUploadUrl(prop.getProperty("asrUploadUrl"));
+            this.setAsrDownloadUrl(prop.getProperty("asrDownloadUrl"));
+            this.setAsrStatusUrl(prop.getProperty("asrStatusUrl"));
+            this.setAsrUser(prop.getProperty("asrUser"));
+            this.setAsrPassword(prop.getProperty("asrPassword"));
 			
 		} catch (FileNotFoundException e) {
 				e.printStackTrace();
@@ -120,4 +132,46 @@ public class PropertiesBean {
 	public void setCrmPassword(String crmPassword) {
 		this.crmPassword = crmPassword;
 	}
+
+	public String getAsrUploadUrl() {
+		return asrUploadUrl;
+	}
+
+	public void setAsrUploadUrl(String asrUploadUrl) {
+		this.asrUploadUrl = asrUploadUrl;
+	}
+
+	public String getAsrDownloadUrl() {
+		return asrDownloadUrl;
+	}
+
+	public void setAsrDownloadUrl(String asrDownloadUrl) {
+		this.asrDownloadUrl = asrDownloadUrl;
+	}
+
+	public String getAsrStatusUrl() {
+		return asrStatusUrl;
+	}
+
+	public void setAsrStatusUrl(String asrStatusUrl) {
+		this.asrStatusUrl = asrStatusUrl;
+	}
+
+	public String getAsrUser() {
+		return asrUser;
+	}
+
+	public void setAsrUser(String asrUser) {
+		this.asrUser = asrUser;
+	}
+
+	public String getAsrPassword() {
+		return asrPassword;
+	}
+
+	public void setAsrPassword(String asrPassword) {
+		this.asrPassword = asrPassword;
+	}
+	
+	
 }
