@@ -32,8 +32,8 @@ public class ServiceDownload {
 		
 		LOGGER.info("----------------- url  " + url.toString());
 		
-		DownloadWSService service = new DownloadWSService();
-		//service = new DownloadWSService(url, new QName("http://ws.pervoice.it/audiomabox/service/Download/1.0/", "DownloadWSService"));
+		DownloadWSService service = null;//new DownloadWSService();
+		service = new DownloadWSService(url, new QName("http://ws.pervoice.it/audiomabox/service/Download/1.0/", "DownloadWSService"));
 		
 		LOGGER.info("----------------- service istanziato");
 

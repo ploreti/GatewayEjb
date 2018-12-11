@@ -1,7 +1,9 @@
 package it.almawave.gateway;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -28,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.almawave.gateway.GatewayServicesLocal;
 import it.almawave.gateway.GatewayServicesRemote;
+import it.almawave.gateway.asr.ServiceDownload;
 import it.almawave.gateway.asr.ServiceUpload;
 import it.almawave.gateway.asr.UtilsAsr;
 import it.almawave.gateway.bean.GatewayResponse;
@@ -38,14 +41,19 @@ import it.almawave.gateway.crm.bean.StartClassficationVOOut;
 import it.almawave.gateway.db.DbManager;
 import it.almawave.gateway.db.bean.CRMRequestBean;
 import it.almawave.gateway.db.bean.DoRequestBean;
+import it.almawave.gateway.db.excption.DbException;
 import it.pervoice.audiomabox.commontypes._1.FileType;
+import it.pervoice.audiomabox.commontypes._1.OutputType;
 import it.pervoice.audiomabox.commontypes._1.StepTypeEnum;
 import it.pervoice.audiomabox.commontypes._1.UploadTypeEnum;
 import it.pervoice.audiomabox.services.common._1.PriorityType;
+import it.pervoice.audiomabox.services.download._1.DownloadRequest;
+import it.pervoice.audiomabox.services.download._1.DownloadResponse;
 import it.pervoice.audiomabox.services.upload._1.OutputFormatType;
 import it.pervoice.audiomabox.services.upload._1.UploadRequest;
 import it.pervoice.audiomabox.services.upload._1.UploadRequest.RemoteFile;
 import it.pervoice.audiomabox.services.upload._1.UploadResponse;
+import it.pervoice.ws.audiomabox.service.download._1.DownloadWS;
 import it.pervoice.ws.audiomabox.service.upload._1.UploadFault;
 import it.pervoice.ws.audiomabox.service.upload._1.UploadWS;
 
@@ -175,15 +183,29 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 		String messaggio = "modificato";
 
 		try {
+			
+			//dbM.inserisciFilePVTandTesto("aaaa111", "</Trans>", "INDEBITA DISPOSIZIONE A VIA IMPEDITA SEGNALE DI PARTENZA al km 16+300 Roma Anagnina");
+			//dbM.modificaStato("aaaa111", 140);
+			
+			
 
-			//dbM.inserisciTesto("aaaa111", "INDEBITA DISPOSIZIONE A VIA IMPEDITA SEGNALE DI PARTENZA al km 16+300 Roma Anagnina");
-			//dbM.modificaStato("aaaa111", 110);
-
-			File file = new File("/opt/visiteinlinea/simulator/Registrazione.m4a"); 
-			byte[] data = FileUtils.readFileToByteArray(file);
-			ByteArrayDataSource rawData = new ByteArrayDataSource(data,"application/octet-stream");
-
-			LOGGER.info("----------------- file letto + " + file.getName());
+//			File file = new File("/opt/visiteinlinea/simulator/Registrazione.m4a"); 
+//			byte[] data = FileUtils.readFileToByteArray(file);
+//			ByteArrayDataSource rawData = new ByteArrayDataSource(data,"application/octet-stream");
+//
+//			LOGGER.info("----------------- file letto + " + file.getName());
+			
+//			ServiceDownload serviceDownload = new ServiceDownload(propertiesBean.getAsrDownloadUrl(), propertiesBean.getAsrUser(), propertiesBean.getAsrPassword());
+//			
+//			DownloadWS service = serviceDownload.getService();
+//			
+//			DownloadRequest downloadRequest = new DownloadRequest();
+//			
+//			downloadRequest.setClientInfo(UtilsAsr.popolaclientInfo());
+//			downloadRequest.setJobId(1500L);
+//			downloadRequest.setFormat(OutputType.PVT);
+//
+//			DownloadResponse downloadResponse = service.download(downloadRequest);
 
 //			UploadWS service = new ServiceUpload(propertiesBean.getAsrUploadUrl(), propertiesBean.getAsrUser(), propertiesBean.getAsrPassword()).getService(); 
 //
@@ -215,7 +237,7 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 	/*
 	 * Only for test
 	 */
-	public String startClassification() throws HttpResponseException, IOException {
+	public String startClassification() throws HttpResponseException, IOException, DbException {
 		GatewayResponse gr=new GatewayResponse();
 		String testo = "abrasioni su piano rotolamento corda alt dal chilometro 206+470 206+570";
 		crm.initClient(propertiesBean.getCrmHost(), propertiesBean.getCrmPort(), propertiesBean.getCrmUser(), propertiesBean.getCrmPassword());
@@ -260,8 +282,12 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 		gr.setTuples(tupleList);
 		gr.setPlainText(plainText);
 		
+		dbM.inserisciResponse("aaaa111", gr);
 		
-		return om.writeValueAsString(gr);
+		String o = om.writeValueAsString(gr);
+		
+		LOGGER.info("-------------------------------\n " + o);
+		return o;
 	}
 
 

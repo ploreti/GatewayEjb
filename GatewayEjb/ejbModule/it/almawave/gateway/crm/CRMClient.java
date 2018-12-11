@@ -112,8 +112,8 @@ public class CRMClient{
 	}
 
 	public GatewayResponse startClassification(String testo) throws HttpResponseException, IOException {
-		GatewayResponse gr=new GatewayResponse();
-		//String testo = "abrasioni su piano rotolamento corda alt dal chilometro 206+470 206+570";
+		
+		GatewayResponse gr = new GatewayResponse();
 		
 		CRMRequestBean bean = new CRMRequestBean();
 		List<String> classificationLogicList = new ArrayList<String>();
@@ -125,20 +125,19 @@ public class CRMClient{
 		String jsonString = objectMapper.writeValueAsString(bean);
 
 		CloseableHttpResponse crmResponse = doPostJson(jsonString, propertiesBean.getCrmClassificationEndPoint());
-		String responseString=new BasicResponseHandler().handleResponse(crmResponse);
-		ObjectMapper om=new ObjectMapper();
-		StartClassficationVOOut startClssificationObject=om.readValue(responseString, StartClassficationVOOut.class);
+		String responseString = new BasicResponseHandler().handleResponse(crmResponse);
+		ObjectMapper om = new ObjectMapper();
+		StartClassficationVOOut startClssificationObject = om.readValue(responseString, StartClassficationVOOut.class);
 
-		Map<String,Object> addProp=startClssificationObject.getAdditionalProperties();
-		Iterator<String> keyIterator=addProp.keySet().iterator();
-		while(keyIterator.hasNext()) {
-			System.out.println("-----------------"+keyIterator.next());
-		}
+		Map<String,Object> addProp = startClssificationObject.getAdditionalProperties();
+		Iterator<String> keyIterator = addProp.keySet().iterator();
+//		while(keyIterator.hasNext()) {
+//			System.out.println("-----------------"+keyIterator.next());
+//		}
 
-		ArrayList<LinkedHashMap<String,Object>> tupleScores=(ArrayList<LinkedHashMap<String,Object>>)addProp.get("tupleScores");
+		ArrayList<LinkedHashMap<String,Object>> tupleScores = (ArrayList<LinkedHashMap<String,Object>>)addProp.get("tupleScores");
 		
-        
-        List<Tuple> tupleList=new ArrayList<Tuple>();
+        List<Tuple> tupleList = new ArrayList<Tuple>();
         
 		tupleScores.forEach(item->{
 			Tuple tuple=new Tuple();
@@ -147,11 +146,11 @@ public class CRMClient{
 			System.out.println(item.get("label"));
 			System.out.println(item.get("rankPosition"));
 			tupleList.add(tuple);
-		}
-				);
+			}
+		);
 		
 		String plainText=(String)addProp.get("plainText");
-		System.out.println(plainText);
+		//System.out.println(plainText);
 		gr.setTuples(tupleList);
 		gr.setPlainText(plainText);
 

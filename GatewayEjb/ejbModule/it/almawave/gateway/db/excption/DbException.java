@@ -8,11 +8,15 @@ public class DbException extends Exception {
 	private static final long serialVersionUID = 1L;
 	
 	private String messaggio;
-	public DbException(String messaggio) {
+	private Integer codice;
+
+	public DbException(String messaggio, Integer codice) {
 		this.setMessaggio(messaggio);
+		this.setCodice(codice);
 	}
-	public DbException(String messaggio, Exception e) {
+	public DbException(String messaggio, Integer codice, Exception e) {
 		this.setMessaggio(messaggio);
+		this.setCodice(codice);
 	}
 
 	public String getMessaggio() {
@@ -21,6 +25,12 @@ public class DbException extends Exception {
 
 	public void setMessaggio(String messaggio) {
 		this.messaggio = messaggio;
+	}
+	public Integer getCodice() {
+		return codice;
+	}
+	public void setCodice(Integer codice) {
+		this.codice = codice;
 	}
 
 }

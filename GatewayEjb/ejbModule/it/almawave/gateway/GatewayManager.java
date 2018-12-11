@@ -84,7 +84,9 @@ public class GatewayManager {
 		TimerConfig timerConfig = new TimerConfig();
 		timerConfig.setInfo("StatusTimerService_"+this.getIdentificativo());
 		LOGGER.info("Timer initial duration and internal duration: "+propertiesBean.getInitialDuration()+" "+ propertiesBean.getInternalDuration());
-		timerService.createIntervalTimer(propertiesBean.getInitialDuration(), propertiesBean.getInternalDuration(), timerConfig); //ogni 5 sec 
+		timerService.createIntervalTimer(propertiesBean.getInitialDuration(), propertiesBean.getInternalDuration(), timerConfig); //ogni 5 sec
+		
+		dbM.modificaStato(this.idDifformita, 102);//in lavorazione
 	}
 
 	@Timeout
@@ -117,22 +119,14 @@ public class GatewayManager {
 
 				//TODO: solo per test
 				testo = "abrasioni su piano rotolamento corda alt dal chilometro 206+470 206+570";
-
-				//salvare il testo nella tabella request per EXT_ID
-				dbM.inserisciTesto(idDifformita, testo);
 				
-				/*
-				 * Invoco il servizio di Classificazione e ottengo
-				 * in risposta un GatewayResponse 
-				 * GatewayResponse è la risposta del CRM con i dati già pulit
-				 */
+				//chiamo il servizio del cmr
 				GatewayResponse crmResponse = startClassification(testo);
-
-				//TODO:salvare le triplette nel db
 				
 				LOGGER.info("_______ processo concluso ________");
+				
 				//mofico lo stato in concluso
-				dbM.modificaStato(this.idDifformita, 110);
+				dbM.modificaStato(this.idDifformita, 110);//completata
 
 			}
 
@@ -153,42 +147,66 @@ public class GatewayManager {
 
 
 		} catch (JsonProcessingException e) {
-			dbM.modificaStato(this.idDifformita, 180);
-			LOGGER.error("_______ ERRORE conversione json________");
+			dbM.modificaStato(this.idDifformita, 140);
+			LOGGER.error("_______ ERRORE conversione json ________");
 			e.printStackTrace();
 			if (timer != null)
 				timer.cancel();
 		} catch (DbException e) {
-			dbM.modificaStato(this.idDifformita, 190);
-			LOGGER.error("_______ ERRORE salvataggio del testo________");
+			dbM.modificaStato(this.idDifformita, e.getCodice());
+			LOGGER.error("_______ ERRORE salvataggio nel db ________");
 			e.printStackTrace();
 			if (timer != null)
 				timer.cancel();
 		} catch (StatusFault e) {
 			//registrare errore nel db
-			dbM.modificaStato(this.idDifformita, 160);
+			dbM.modificaStato(this.idDifformita, 120);
 			LOGGER.error("_______ ERRORE invocazione servizio Status ________");
 			e.printStackTrace();
 			if (timer != null)
 				timer.cancel();
-		} catch (IOException|ParserConfigurationException|SAXException|DownloadFault e) {
+		} catch (DownloadFault e) {
 			//registrare errore nel db
-			dbM.modificaStato(this.idDifformita, 170);
-			LOGGER.error("_______ ERRORE invocazione servizio Download________");
+			dbM.modificaStato(this.idDifformita, 121);
+			LOGGER.error("_______ ERRORE invocazione servizio Download ________");
 			e.printStackTrace();
 			if (timer != null)
 				timer.cancel();
-		}
+		} catch (IOException|ParserConfigurationException|SAXException e) {
+			//registrare errore nel db
+			dbM.modificaStato(this.idDifformita, 141);
+			LOGGER.error("_______ ERRORE conversione oggetto ________");
+			e.printStackTrace();
+			if (timer != null)
+				timer.cancel();
+			}
 
 	}
 
 
-	private GatewayResponse startClassification(String testo) throws HttpResponseException, IOException {
+	/**
+	 * Invoco il servizio di Classificazione e ottengo in risposta un GatewayResponse 
+	 * @param testo
+	 * @return GatewayResponse è la risposta del CRM con i dati già puliti
+	 * @throws HttpResponseException
+	 * @throws IOException
+	 * @throws DbException 
+	 */
+	private GatewayResponse startClassification(String testo) throws HttpResponseException, IOException, DbException {
 		crm.initClient(propertiesBean.getCrmHost(), propertiesBean.getCrmPort(), propertiesBean.getCrmUser(), propertiesBean.getCrmPassword());
-		GatewayResponse crmResponse=crm.startClassification(testo);
+		GatewayResponse crmResponse = crm.startClassification(testo);
+		
+		dbM.inserisciResponse(this.idDifformita, crmResponse);
+
 		return crmResponse;
 	}
 	
+	/**
+	 * 
+	 * @return String lo stato della richiesta in lavorazione dal asr
+	 * @throws MalformedURLException
+	 * @throws StatusFault
+	 */
 	private String startServiceStatus() throws MalformedURLException, StatusFault {
 		
 		String stato = "";
@@ -202,7 +220,6 @@ public class GatewayManager {
 
 		if (statusResponse.getJob().isEmpty()) {
 			LOGGER.error("_______ job NON trovato ________");
-			//registrare errore nel db nessun job trovato per identificativo inserito
 			throw new StatusFault("nessun job trovato per identificativo inserito " + identificativo, null) ;
 		} 
 
@@ -211,7 +228,6 @@ public class GatewayManager {
 
 		//job in errore 
 		if(job.getStatus().value().equals(EnumStatusType.FAILED.value())) {
-			//registrare errore nel db nessun job trovato per identificativo inserito
 			LOGGER.info("_______ job terminato con errore : " + job.getErrCode());
 			FaultType fault = new FaultType();
 			fault.setErrorCode(String.valueOf( job.getErrCode() ));
@@ -225,8 +241,16 @@ public class GatewayManager {
 		
 	}
 	
-	
-	private String startServiceDownload() throws DownloadFault, IOException, ParserConfigurationException, SAXException {
+	/**
+	 * 
+	 * @return String testo da passare al servizio del crm
+	 * @throws DownloadFault
+	 * @throws IOException
+	 * @throws ParserConfigurationException
+	 * @throws SAXException
+	 * @throws DbException
+	 */
+	private String startServiceDownload() throws DownloadFault, IOException, ParserConfigurationException, SAXException, DbException {
 		
 		String testo ="";
 		
@@ -248,14 +272,16 @@ public class GatewayManager {
 		String filePvt = new String(byteArray, "UTF-8");
 		
 		LOGGER.info("_______ filePvt : " + filePvt);
-		
+				
 		Document fileXml = UtilsAsr.convertStringToDocument(filePvt);
 		fileXml.getDocumentElement().normalize();
-		
 		testo = UtilsAsr.concatena(fileXml);
 		
 		LOGGER.info("_______ testo : " + testo);
-
+		
+		//salvare il pvt ed il testo nel db
+		dbM.inserisciFilePVTandTesto(idDifformita, filePvt, testo);
+		
 		return testo;
 	}
 	
