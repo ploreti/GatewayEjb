@@ -1,6 +1,7 @@
 package it.almawave.gateway.db;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -10,10 +11,13 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import it.almawave.gateway.bean.GatewayResponse;
 import it.almawave.gateway.bean.Tuple;
 import it.almawave.gateway.db.bean.DoRequestBean;
 import it.almawave.gateway.db.excption.DbException;
+import it.almawave.gateway.internal.Parameters;
 import it.almawave.gateway.internal.Request;
 import it.almawave.gateway.internal.RequestStatus;
 import it.almawave.gateway.internal.Response;
@@ -35,44 +39,54 @@ public class DbManager {
         
     }
     
-    public void inserisciRequest(DoRequestBean request, String id) {
+    public void inserisciRequest(DoRequestBean request, String id) throws DbException {
+    	try {
     	
-    	
-    	Request _request = new Request();
-		_request.setEXT_ID(request.getIdDifformita());
-		_request.setNODE_ID(1);
-		_request.setFILE_URI(request.getPercorsoFileAudio());
-		_request.setTIPO_VISITA(request.getTipoVisita());
-		_request.setDTP(request.getDtp());
-		_request.setSPECIALIZZAZIONE(request.getSpecializzazione());
-		_request.setAUDIOMA_ID(Long.valueOf(id));
-		_request.setSTART_DATE(new Date());
-
-		RequestStatus _requestStatus = new RequestStatus();
-
-		_requestStatus.setEXT_ID(request.getIdDifformita());
-		_requestStatus.setINSERT_DATE(new Date());
-		Status stato = em.find(Status.class, 100);
-		_requestStatus.setSTATUS(stato);
-		_requestStatus.setSYSTEM_ID(1);
-
-		em.persist(_request);
-		em.persist(_requestStatus);
+	    	Request _request = new Request();
+			_request.setEXT_ID(request.getIdDifformita());
+			_request.setNODE_ID(1);
+			_request.setFILE_URI(request.getPercorsoFileAudio());
+			_request.setTIPO_VISITA(request.getTipoVisita());
+			_request.setDTP(request.getDtp());
+			_request.setSPECIALIZZAZIONE(request.getSpecializzazione());
+			_request.setAUDIOMA_ID(Long.valueOf(id));
+			_request.setSTART_DATE(new Date());
+	
+			RequestStatus _requestStatus = new RequestStatus();
+	
+			_requestStatus.setEXT_ID(request.getIdDifformita());
+			_requestStatus.setINSERT_DATE(new Date());
+			Status stato = em.find(Status.class, 100);
+			_requestStatus.setSTATUS(stato);
+			_requestStatus.setSYSTEM_ID(1);
+	
+			em.persist(_request);
+			em.persist(_requestStatus);
+		
+    	} catch (Exception e) {
+ 			e.printStackTrace();
+ 			throw new DbException("ERRORE nel salvattaggio della richiesta ", 133);
+ 		}
     	
     }
     
     
-    public void modificaStato(String idDifformita, int idstato) {
+    public void modificaStato(String idDifformita, int idstato) throws DbException {
+    	try {
     	
-    	RequestStatus _requestStatus = new RequestStatus();
-
-		_requestStatus.setEXT_ID(idDifformita);
-		_requestStatus.setINSERT_DATE(new Date());
-		Status stato = em.find(Status.class, idstato);
-		_requestStatus.setSTATUS(stato);
-		_requestStatus.setSYSTEM_ID(1);
-		
-		em.persist(_requestStatus);
+	    	RequestStatus _requestStatus = new RequestStatus();
+	
+			_requestStatus.setEXT_ID(idDifformita);
+			_requestStatus.setINSERT_DATE(new Date());
+			Status stato = em.find(Status.class, idstato);
+			_requestStatus.setSTATUS(stato);
+			_requestStatus.setSYSTEM_ID(1);
+			
+			em.persist(_requestStatus);
+    	} catch (Exception e) {
+ 			e.printStackTrace();
+ 			throw new DbException("ERRORE nel salvattaggio dello stato della richiesta ", 132);
+ 		}
     	
     }
     
@@ -146,7 +160,7 @@ public class DbManager {
 			}
 			em.persist(risposta);
 			richiesta.setCRM_RESPONSE(risposta.getID());
-			richiesta.setDTP("modifca questo");
+			richiesta.setEND_DATE(new Date());
 			em.merge(richiesta);
     	} catch (Exception e) {
     		e.printStackTrace();
@@ -155,15 +169,97 @@ public class DbManager {
     }
     
     
-    public String leggiStato(String idDifformita) {
-    	Query query = em.createNamedQuery("RequestStatus.findStatusByExtId");
-		query.setParameter("extID", idDifformita);
-		List<RequestStatus> results = query.getResultList();
-
-		if (results.isEmpty())
-			return "Nessuna richiesta è stata trovata";
-
-		return results.get(0).getSTATUS().getDESCRIZIONE();
+    public String leggiStato(String idDifformita) throws DbException {
+    	try {
+	    	Query query = em.createNamedQuery("RequestStatus.findStatusByExtId");
+			query.setParameter("extID", idDifformita);
+			List<Status> results = query.getResultList();
+	
+			if (results.isEmpty())
+				return "Nessuna richiesta è stata trovata";
+	
+			return results.get(0).getDESCRIZIONE();
+    	}catch (Exception e) {
+    		e.printStackTrace();
+    		throw new DbException("ERRORE nel recupero dello stato ", 120);
+		}
+    }
+    
+    public String leggiResponse(String idDifformita) throws DbException {
+    	try {
+    		
+    		String response = "";
+    		//leggere la Request
+	    	Query query = em.createNamedQuery("Request.findByExtId");
+	    	query.setParameter("extID", idDifformita);
+	    	List<Request> results = query.getResultList();
+	    	
+			if (results.isEmpty())
+				return "Nessuna richiesta è stata trovata";
+			
+			Integer idResponse = results.get(0).getCRM_RESPONSE();
+			
+			if (idResponse == null || idResponse.intValue()==0)
+				return "Nessuna risposta è stata trovata";
+			
+			Response  risposta = em.find(Response.class, idResponse);
+			
+			GatewayResponse gr = new GatewayResponse();
+			
+			if (risposta.getTESTO() != null) {
+				String txt = new String(risposta.getTESTO(), "UTF-8");
+				gr.setPlainText(txt);
+			}
+			
+			if (risposta.getTUPLA1() != null && !risposta.getTUPLA1().trim().equals("")) {
+				List<Tuple> tuples = new ArrayList<Tuple>();
+				Tuple tupla = new Tuple();
+				tupla.setValue(risposta.getTUPLA1());
+				tupla.setRank(risposta.getRANK_TUPLA1());
+				tuples.add(tupla);
+				//se presenti aggingo anche tupla2 e tupla3
+				if (risposta.getTUPLA2() != null && !risposta.getTUPLA2().trim().equals("")) {
+					tupla = new Tuple();
+					tupla.setValue(risposta.getTUPLA2());
+					tupla.setRank(risposta.getRANK_TUPLA2());
+					tuples.add(tupla);
+				}
+				if (risposta.getTUPLA3() != null && !risposta.getTUPLA3().trim().equals("")) {
+					tupla = new Tuple();
+					tupla.setValue(risposta.getTUPLA3());
+					tupla.setRank(risposta.getRANK_TUPLA3());
+					tuples.add(tupla);
+				}
+				gr.setTuples(tuples);
+			}
+			
+			if (risposta.getURGENTE()!= null && !risposta.getURGENTE().trim().equals(""))
+				gr.setIsUrgent(Boolean.valueOf(risposta.getURGENTE()));
+			
+			if (risposta.getKM()!= null && !risposta.getKM().trim().equals(""))
+				gr.setKm(Integer.valueOf(risposta.getKM()));
+			
+			ObjectMapper om=new ObjectMapper();
+			response = om.writeValueAsString(gr);
+			
+			return response;
+    	}catch (Exception e) {
+    		e.printStackTrace();
+    		throw new DbException("ERRORE nel recupero della rispsota ", 120);
+		}
+    }
+    
+    public List<Parameters> getElencoParametriSistema() throws DbException {
+    	try {
+    	
+	        Query query = em.createQuery("SELECT p FROM Parameters p");
+	        List<Parameters> lista = query.getResultList();
+	        return lista;
+    	}catch (Exception e) {
+    		e.printStackTrace();
+    		throw new DbException("ERRORE nel recupero dei paramtri ", 999);
+		}
+    	
     }
 
 }

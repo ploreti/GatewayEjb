@@ -35,6 +35,7 @@ import it.almawave.gateway.asr.ServiceUpload;
 import it.almawave.gateway.asr.UtilsAsr;
 import it.almawave.gateway.bean.GatewayResponse;
 import it.almawave.gateway.bean.Tuple;
+import it.almawave.gateway.configuration.Parametri;
 import it.almawave.gateway.configuration.PropertiesBean;
 import it.almawave.gateway.crm.CRMClient;
 import it.almawave.gateway.crm.bean.StartClassficationVOOut;
@@ -170,12 +171,32 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 			return dbM.leggiStato(id);
 
 		}catch (Exception e) {
-			return "Errore nel recupero dello sto della richiesta";
+			return "Errore nel recupero dello stato della richiesta";
 		}finally {
 
 		}
 
 	}
+	
+	/**
+	 * Il servizio ottenuta la conferma che la richiesta è stata completata, richiede il testo trascritto e classificato.
+	 * @param id
+	 * @return il testo trascritto, le tuple di classificazione (ordinate per livello di attendibilità), le entità e i concetti identificati.
+	 */
+	public String getResponse(String id) {
+
+		try {
+
+			return dbM.leggiResponse(id);
+
+		}catch (Exception e) {
+			return "Errore nel recupero della response della richiesta";
+		}finally {
+
+		}
+
+	}
+
 
 
 	public String tester() {
@@ -240,7 +261,7 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 	public String startClassification() throws HttpResponseException, IOException, DbException {
 		GatewayResponse gr=new GatewayResponse();
 		String testo = "abrasioni su piano rotolamento corda alt dal chilometro 206+470 206+570";
-		crm.initClient(propertiesBean.getCrmHost(), propertiesBean.getCrmPort(), propertiesBean.getCrmUser(), propertiesBean.getCrmPassword());
+		crm.initClient(propertiesBean.getValore(Parametri.crmHost), Integer.parseInt(propertiesBean.getValore(Parametri.crmPort)), propertiesBean.getValore(Parametri.crmUser), propertiesBean.getValore(Parametri.crmPassword));
 
 		CRMRequestBean bean = new CRMRequestBean();
 		List<String> classificationLogicList = new ArrayList<String>();
@@ -251,7 +272,7 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 		ObjectMapper objectMapper = new ObjectMapper();
 		String jsonString = objectMapper.writeValueAsString(bean);
 
-		CloseableHttpResponse crmResponse = crm.doPostJson(jsonString, propertiesBean.getCrmClassificationEndPoint());
+		CloseableHttpResponse crmResponse = crm.doPostJson(jsonString, propertiesBean.getValore(Parametri.crmClassificationEndPoint));
 		String responseString=new BasicResponseHandler().handleResponse(crmResponse);
 		ObjectMapper om=new ObjectMapper();
 		StartClassficationVOOut startClssificationObject=om.readValue(responseString, StartClassficationVOOut.class);

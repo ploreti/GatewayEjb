@@ -28,6 +28,7 @@ import it.almawave.gateway.asr.ServiceDownload;
 import it.almawave.gateway.asr.ServiceStatus;
 import it.almawave.gateway.asr.UtilsAsr;
 import it.almawave.gateway.bean.GatewayResponse;
+import it.almawave.gateway.configuration.Parametri;
 import it.almawave.gateway.configuration.PropertiesBean;
 import it.almawave.gateway.crm.CRMClient;
 import it.almawave.gateway.db.DbManager;
@@ -77,20 +78,22 @@ public class GatewayManager {
 
 	}
 
-	public void init(String id, String idDifformita) throws  IOException {
+	public void init(String id, String idDifformita) throws  IOException, DbException {
 		this.identificativo = id;
 		this.idDifformita = idDifformita;
 
 		TimerConfig timerConfig = new TimerConfig();
 		timerConfig.setInfo("StatusTimerService_"+this.getIdentificativo());
-		LOGGER.info("Timer initial duration and internal duration: "+propertiesBean.getInitialDuration()+" "+ propertiesBean.getInternalDuration());
-		timerService.createIntervalTimer(propertiesBean.getInitialDuration(), propertiesBean.getInternalDuration(), timerConfig); //ogni 5 sec
+		Long start = Long.valueOf(propertiesBean.getValore(Parametri.initialDuration));
+		Long iter = Long.valueOf(propertiesBean.getValore(Parametri.internalDuration));
+		LOGGER.info("Timer initial duration and internal duration: "+start+" "+ iter);
+		timerService.createIntervalTimer(start, iter, timerConfig); //ogni 5 sec
 		
 		dbM.modificaStato(this.idDifformita, 102);//in lavorazione
 	}
 
 	@Timeout
-	public void startProcess(Timer timer){
+	public void startProcess(Timer timer) throws DbException{
 
 		try {
 
@@ -193,7 +196,7 @@ public class GatewayManager {
 	 * @throws DbException 
 	 */
 	private GatewayResponse startClassification(String testo) throws HttpResponseException, IOException, DbException {
-		crm.initClient(propertiesBean.getCrmHost(), propertiesBean.getCrmPort(), propertiesBean.getCrmUser(), propertiesBean.getCrmPassword());
+		crm.initClient(propertiesBean.getValore(Parametri.crmHost), Integer.parseInt(propertiesBean.getValore(Parametri.crmPort)), propertiesBean.getValore(Parametri.crmUser), propertiesBean.getValore(Parametri.crmPassword));
 		GatewayResponse crmResponse = crm.startClassification(testo);
 		
 		dbM.inserisciResponse(this.idDifformita, crmResponse);
@@ -211,7 +214,7 @@ public class GatewayManager {
 		
 		String stato = "";
 		
-		StatusWS serviceS = new ServiceStatus(propertiesBean.getAsrStatusUrl(), propertiesBean.getAsrUser(), propertiesBean.getAsrPassword()).getService();
+		StatusWS serviceS = new ServiceStatus(propertiesBean.getValore(Parametri.asrStatusUrl), propertiesBean.getValore(Parametri.asrUser), propertiesBean.getValore(Parametri.asrPassword)).getService();
 
 		StatusRequest statusRequest = new StatusRequest();
 		statusRequest.setClientInfo(UtilsAsr.popolaclientInfo());
@@ -254,7 +257,7 @@ public class GatewayManager {
 		
 		String testo ="";
 		
-		DownloadWS serviceD = new ServiceDownload(propertiesBean.getAsrDownloadUrl(), propertiesBean.getAsrUser(), propertiesBean.getAsrPassword()).getService();
+		DownloadWS serviceD = new ServiceDownload(propertiesBean.getValore(Parametri.asrDownloadUrl), propertiesBean.getValore(Parametri.asrUser), propertiesBean.getValore(Parametri.asrPassword)).getService();
 		DownloadRequest downloadRequest = new DownloadRequest();
 		
 		downloadRequest.setClientInfo(UtilsAsr.popolaclientInfo());

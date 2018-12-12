@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.almawave.gateway.bean.GatewayResponse;
 import it.almawave.gateway.bean.Tuple;
+import it.almawave.gateway.configuration.Parametri;
 import it.almawave.gateway.configuration.PropertiesBean;
 import it.almawave.gateway.crm.bean.StartClassficationVOOut;
 import it.almawave.gateway.db.bean.CRMRequestBean;
@@ -124,7 +125,7 @@ public class CRMClient{
 		ObjectMapper objectMapper = new ObjectMapper();
 		String jsonString = objectMapper.writeValueAsString(bean);
 
-		CloseableHttpResponse crmResponse = doPostJson(jsonString, propertiesBean.getCrmClassificationEndPoint());
+		CloseableHttpResponse crmResponse = doPostJson(jsonString, propertiesBean.getValore(Parametri.crmClassificationEndPoint));
 		String responseString = new BasicResponseHandler().handleResponse(crmResponse);
 		ObjectMapper om = new ObjectMapper();
 		StartClassficationVOOut startClssificationObject = om.readValue(responseString, StartClassficationVOOut.class);
@@ -143,8 +144,8 @@ public class CRMClient{
 			Tuple tuple=new Tuple();
 			tuple.setValue((String)item.get("label"));
 			tuple.setRank((Integer)item.get("rankPosition"));
-			System.out.println(item.get("label"));
-			System.out.println(item.get("rankPosition"));
+//			System.out.println(item.get("label"));
+//			System.out.println(item.get("rankPosition"));
 			tupleList.add(tuple);
 			}
 		);
@@ -153,6 +154,7 @@ public class CRMClient{
 		//System.out.println(plainText);
 		gr.setTuples(tupleList);
 		gr.setPlainText(plainText);
+		//TODO: settare priorita e km
 
 		return gr;
 	}
