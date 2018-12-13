@@ -1,9 +1,6 @@
 package it.almawave.gateway;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -12,15 +9,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.activation.DataHandler;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
-import javax.mail.util.ByteArrayDataSource;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.BasicResponseHandler;
@@ -28,11 +20,7 @@ import org.jboss.logging.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import it.almawave.gateway.GatewayServicesLocal;
-import it.almawave.gateway.GatewayServicesRemote;
-import it.almawave.gateway.asr.ServiceDownload;
 import it.almawave.gateway.asr.ServiceUpload;
-import it.almawave.gateway.asr.UtilsAsr;
 import it.almawave.gateway.bean.GatewayResponse;
 import it.almawave.gateway.bean.Tuple;
 import it.almawave.gateway.configuration.Parametri;
@@ -43,18 +31,7 @@ import it.almawave.gateway.db.DbManager;
 import it.almawave.gateway.db.bean.CRMRequestBean;
 import it.almawave.gateway.db.bean.DoRequestBean;
 import it.almawave.gateway.db.excption.DbException;
-import it.pervoice.audiomabox.commontypes._1.FileType;
-import it.pervoice.audiomabox.commontypes._1.OutputType;
-import it.pervoice.audiomabox.commontypes._1.StepTypeEnum;
-import it.pervoice.audiomabox.commontypes._1.UploadTypeEnum;
-import it.pervoice.audiomabox.services.common._1.PriorityType;
-import it.pervoice.audiomabox.services.download._1.DownloadRequest;
-import it.pervoice.audiomabox.services.download._1.DownloadResponse;
-import it.pervoice.audiomabox.services.upload._1.OutputFormatType;
-import it.pervoice.audiomabox.services.upload._1.UploadRequest;
-import it.pervoice.audiomabox.services.upload._1.UploadRequest.RemoteFile;
 import it.pervoice.audiomabox.services.upload._1.UploadResponse;
-import it.pervoice.ws.audiomabox.service.download._1.DownloadWS;
 import it.pervoice.ws.audiomabox.service.upload._1.UploadFault;
 import it.pervoice.ws.audiomabox.service.upload._1.UploadWS;
 
@@ -98,59 +75,31 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 
 		try {
 
-			//recuperare il file
-			File file = new File(request.getPercorsoFileAudio()); 
-			byte[] data = FileUtils.readFileToByteArray(file);
-			ByteArrayDataSource rawData = new ByteArrayDataSource(data,"application/octet-stream");
+			String id = "";
+			
+			ServiceUpload uploadService = new ServiceUpload(propertiesBean.getValore(Parametri.asrUploadUrl), propertiesBean.getValore(Parametri.asrUser), propertiesBean.getValore(Parametri.asrPassword));
 
-			//chamare il servizio uploadService
-//			UploadWS service = new ServiceUpload(propertiesBean.getAsrUploadUrl(), propertiesBean.getAsrUser(), propertiesBean.getAsrPassword()).getService(); 
+			UploadWS service = uploadService.getService(); 
 
-			UploadRequest uploadRequest = new UploadRequest();
-			uploadRequest.setClientInfo(UtilsAsr.popolaclientInfo());
+			UploadResponse uploadResponse = service.upload(uploadService.initStatusRequest(request));
 			
-			//file
-			RemoteFile remoteFile = new RemoteFile();
-			FileType fileType = new FileType(); 
-			fileType.setName(file.getName());
-			DataHandler dataHandler =  new DataHandler(rawData);
-			fileType.setData(dataHandler);
-			remoteFile.setFile(fileType);
-			uploadRequest.setRemoteFile(remoteFile);
-			
-			uploadRequest.setUploadType(UploadTypeEnum.REMOTE_FILE);
-			uploadRequest.setCustomerProvidedId("1");
-			uploadRequest.setManualRevision(true);
-			uploadRequest.setDomainId("ita_ITA_STND_NEWS-ita_ITA_STND_W_DGM");
-			uploadRequest.setPunctuationEnabled(true);
-			
-			PriorityType priorityType = new PriorityType();
-			priorityType.setCode("HIGH");
-			uploadRequest.setPriority(priorityType);
-			
-			uploadRequest.setStep(StepTypeEnum.ONE_STEP);
-			uploadRequest.getOutputFormats().add(OutputFormatType.PVT);
-
-			//recuperare id dalla respons
-//			UploadResponse uploadResponse = service.upload(uploadRequest);
-//			String id = String.valueOf(uploadResponse.getJobElement().get(0).getJobId());
+			id = uploadService.elaboraResonse(uploadResponse);
 
 			//memorizzare nel db la requestee lo status
-			//dbM.inserisciRequest(request, id);
-			dbM.inserisciRequest(request, "1000");
+			dbM.inserisciRequest(request, id);
 			
 			//laciare il timer per il recupero dellostatus
-			//gm.init(id, request.getIdDifformita());
-			gm.init("1000", request.getIdDifformita());
+			gm.init(id, request.getIdDifformita());
+
 			return request.getIdDifformita();
 
 		}catch (FileNotFoundException e) {
 			return "File audio non trovato";
 		} 
-//		catch (MalformedURLException|UploadFault e) {
-//			e.printStackTrace();
-//			return "Errore nella chiata al servizio Upload di PerVoice";
-//		}
+		catch (MalformedURLException|UploadFault e) {
+			e.printStackTrace();
+			return "Errore nella chiata al servizio Upload di PerVoice";
+		}
 		catch (Exception e) {
 			return "Nessuna richiesta è stata inserita";
 		}finally {

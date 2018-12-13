@@ -126,10 +126,10 @@ public class GatewayManager {
 				//chiamo il servizio del cmr
 				GatewayResponse crmResponse = startClassification(testo);
 				
-				LOGGER.info("_______ processo concluso ________");
-				
 				//mofico lo stato in concluso
 				dbM.modificaStato(this.idDifformita, 110);//completata
+				
+				LOGGER.info("_______ processo concluso ________");
 
 			}
 
@@ -197,6 +197,7 @@ public class GatewayManager {
 	 */
 	private GatewayResponse startClassification(String testo) throws HttpResponseException, IOException, DbException {
 		crm.initClient(propertiesBean.getValore(Parametri.crmHost), Integer.parseInt(propertiesBean.getValore(Parametri.crmPort)), propertiesBean.getValore(Parametri.crmUser), propertiesBean.getValore(Parametri.crmPassword));
+		
 		GatewayResponse crmResponse = crm.startClassification(testo);
 		
 		dbM.inserisciResponse(this.idDifformita, crmResponse);
@@ -205,7 +206,7 @@ public class GatewayManager {
 	}
 	
 	/**
-	 * 
+	 * eseguie la chiamata al servizio di asr per recuperare lo Status della richiesta 
 	 * @return String lo stato della richiesta in lavorazione dal asr
 	 * @throws MalformedURLException
 	 * @throws StatusFault
@@ -214,32 +215,14 @@ public class GatewayManager {
 		
 		String stato = "";
 		
-		StatusWS serviceS = new ServiceStatus(propertiesBean.getValore(Parametri.asrStatusUrl), propertiesBean.getValore(Parametri.asrUser), propertiesBean.getValore(Parametri.asrPassword)).getService();
-
-		StatusRequest statusRequest = new StatusRequest();
-		statusRequest.setClientInfo(UtilsAsr.popolaclientInfo());
-		statusRequest.setJobId(Long.parseLong(identificativo));
-		StatusResponse statusResponse = serviceS.status(statusRequest);
-
-		if (statusResponse.getJob().isEmpty()) {
-			LOGGER.error("_______ job NON trovato ________");
-			throw new StatusFault("nessun job trovato per identificativo inserito " + identificativo, null) ;
-		} 
-
-		JobFileType job = statusResponse.getJob().get(0);
-		LOGGER.info("_______  job stato : " + job.getStatus().value());
-
-		//job in errore 
-		if(job.getStatus().value().equals(EnumStatusType.FAILED.value())) {
-			LOGGER.info("_______ job terminato con errore : " + job.getErrCode());
-			FaultType fault = new FaultType();
-			fault.setErrorCode(String.valueOf( job.getErrCode() ));
-			fault.setErrorMessage(job.getStatusReason());
-			throw new StatusFault("job terminato con errore", fault) ;
-		}
+		ServiceStatus statusService = new ServiceStatus(propertiesBean.getValore(Parametri.asrStatusUrl), propertiesBean.getValore(Parametri.asrUser), propertiesBean.getValore(Parametri.asrPassword));
 		
-		stato = job.getStatus().value();
-		
+		StatusWS serviceS = statusService.getService();
+
+		StatusResponse statusResponse = serviceS.status(statusService.initStatusRequest(identificativo));
+
+		stato = statusService.elaboraResonse(statusResponse, identificativo);
+
 		return stato;
 		
 	}
@@ -257,33 +240,18 @@ public class GatewayManager {
 		
 		String testo ="";
 		
-		DownloadWS serviceD = new ServiceDownload(propertiesBean.getValore(Parametri.asrDownloadUrl), propertiesBean.getValore(Parametri.asrUser), propertiesBean.getValore(Parametri.asrPassword)).getService();
-		DownloadRequest downloadRequest = new DownloadRequest();
+		ServiceDownload downloadService = new ServiceDownload(propertiesBean.getValore(Parametri.asrDownloadUrl), propertiesBean.getValore(Parametri.asrUser), propertiesBean.getValore(Parametri.asrPassword));
 		
-		downloadRequest.setClientInfo(UtilsAsr.popolaclientInfo());
-		downloadRequest.setJobId(Long.parseLong(identificativo));
-		downloadRequest.setFormat(OutputType.PVT);
+		DownloadWS serviceD = downloadService.getService();
 
-		DownloadResponse downloadResponse = serviceD.download(downloadRequest);
+		DownloadResponse downloadResponse = serviceD.download(downloadService.initDownloadRequest(identificativo));
 		
-		//formattare il testo dalle response
-		DataHandler dataHandler = downloadResponse.getTranscription().getData();
-		
-		final InputStream in = dataHandler.getInputStream();
-		byte[] byteArray = org.apache.commons.io.IOUtils.toByteArray(in);
-		
-		String filePvt = new String(byteArray, "UTF-8");
-		
-		LOGGER.info("_______ filePvt : " + filePvt);
-				
-		Document fileXml = UtilsAsr.convertStringToDocument(filePvt);
-		fileXml.getDocumentElement().normalize();
-		testo = UtilsAsr.concatena(fileXml);
-		
-		LOGGER.info("_______ testo : " + testo);
+		String[] testi = downloadService.elaboraResonse(downloadResponse, identificativo);
 		
 		//salvare il pvt ed il testo nel db
-		dbM.inserisciFilePVTandTesto(idDifformita, filePvt, testo);
+		dbM.inserisciFilePVTandTesto(idDifformita, testi[0], testi[1]);
+		
+		testo = testi[1];
 		
 		return testo;
 	}

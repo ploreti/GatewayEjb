@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +30,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.jboss.logging.Logger;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import it.almawave.gateway.bean.GatewayResponse;
@@ -114,50 +116,19 @@ public class CRMClient{
 
 	public GatewayResponse startClassification(String testo) throws HttpResponseException, IOException {
 		
-		GatewayResponse gr = new GatewayResponse();
-		
-		CRMRequestBean bean = new CRMRequestBean();
-		List<String> classificationLogicList = new ArrayList<String>();
-		//TODO: comporre il classificationLogicList
-		classificationLogicList.add("Visita Al Binario a Piedi");
-		bean.setClassificationLogicList(classificationLogicList);
-		bean.setTextMessage(testo);
-		ObjectMapper objectMapper = new ObjectMapper();
-		String jsonString = objectMapper.writeValueAsString(bean);
+		String jsonString = this.initCRMRequestBean(testo);
 
 		CloseableHttpResponse crmResponse = doPostJson(jsonString, propertiesBean.getValore(Parametri.crmClassificationEndPoint));
+		
 		String responseString = new BasicResponseHandler().handleResponse(crmResponse);
-		ObjectMapper om = new ObjectMapper();
-		StartClassficationVOOut startClssificationObject = om.readValue(responseString, StartClassficationVOOut.class);
-
-		Map<String,Object> addProp = startClssificationObject.getAdditionalProperties();
-		Iterator<String> keyIterator = addProp.keySet().iterator();
-//		while(keyIterator.hasNext()) {
-//			System.out.println("-----------------"+keyIterator.next());
-//		}
-
-		ArrayList<LinkedHashMap<String,Object>> tupleScores = (ArrayList<LinkedHashMap<String,Object>>)addProp.get("tupleScores");
 		
-        List<Tuple> tupleList = new ArrayList<Tuple>();
-        
-		tupleScores.forEach(item->{
-			Tuple tuple=new Tuple();
-			tuple.setValue((String)item.get("label"));
-			tuple.setRank((Integer)item.get("rankPosition"));
-//			System.out.println(item.get("label"));
-//			System.out.println(item.get("rankPosition"));
-			tupleList.add(tuple);
-			}
-		);
+		GatewayResponse gr = null;
 		
-		String plainText=(String)addProp.get("plainText");
-		//System.out.println(plainText);
-		gr.setTuples(tupleList);
-		gr.setPlainText(plainText);
-		//TODO: settare priorita e km
+		gr = this.elaboraResonse(responseString);
 
 		return gr;
 	}
+	
 
 	public String[] getUserPawwsord(String token) {
 		//Tolgo "Basic "
@@ -172,6 +143,50 @@ public class CRMClient{
 		byte[] decodedBytes = Base64.getDecoder().decode(encodedString);
 		String decodedString = new String(decodedBytes);
 		return decodedString;
+	}
+	
+	private String initCRMRequestBean(String testo) throws JsonProcessingException {
+		
+		CRMRequestBean bean = new CRMRequestBean();
+		List<String> classificationLogicList = new ArrayList<String>();
+		//TODO: comporre il classificationLogicList
+		classificationLogicList.add("Visita Al Binario a Piedi");
+		bean.setClassificationLogicList(classificationLogicList);
+		bean.setTextMessage(testo);
+		ObjectMapper objectMapper = new ObjectMapper();
+		String jsonString = objectMapper.writeValueAsString(bean);
+		
+		return jsonString;
+		
+	}
+	
+	private GatewayResponse elaboraResonse(String responseString) throws JsonParseException, JsonMappingException, IOException  {
+		
+		GatewayResponse gr = new GatewayResponse();
+		
+		ObjectMapper om = new ObjectMapper();
+		StartClassficationVOOut startClssificationObject = om.readValue(responseString, StartClassficationVOOut.class);
+
+		Map<String,Object> addProp = startClssificationObject.getAdditionalProperties();
+
+		ArrayList<LinkedHashMap<String,Object>> tupleScores = (ArrayList<LinkedHashMap<String,Object>>)addProp.get("tupleScores");
+		
+        List<Tuple> tupleList = new ArrayList<Tuple>();
+        
+		tupleScores.forEach(item->{
+			Tuple tuple=new Tuple();
+			tuple.setValue((String)item.get("label"));
+			tuple.setRank((Integer)item.get("rankPosition"));
+			tupleList.add(tuple);
+			}
+		);
+		
+		String plainText=(String)addProp.get("plainText");
+		gr.setTuples(tupleList);
+		gr.setPlainText(plainText);
+		//TODO: settare priorita e km
+		
+		return gr;
 	}
 	
 	
