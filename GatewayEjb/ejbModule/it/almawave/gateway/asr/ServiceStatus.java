@@ -4,7 +4,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.namespace.QName;
 import javax.xml.ws.Binding;
@@ -28,7 +27,7 @@ public class ServiceStatus {
 	private static final Logger LOGGER = Logger.getLogger(ServiceStatus.class);
 	private StatusWS statusWS = null;
 
-	public ServiceStatus(String serviceStatusUrl, String username, String password) throws MalformedURLException {
+	public ServiceStatus(String serviceStatusUrl, String username, String password, Boolean isMokcServicesAsr) throws MalformedURLException {
 		
 		LOGGER.info("[Costrutture Service Status INVOKED]");
 
@@ -37,12 +36,15 @@ public class ServiceStatus {
 		
 		LOGGER.info("----------------- url  " + url.toString());
 		
-		StatusWSService service = null;//new StatusWSService();
-		service = new StatusWSService(url, new QName("http://ws.pervoice.it/audiomabox/service/Status/1.0", "StatusWSService"));
+		StatusWSService service = null;
+		if (isMokcServicesAsr)
+			service = new StatusWSService(url, new QName("http://ws.mock.asr.visiteinlinea.it/", "ServiceStatus"));
+		else
+			service = new StatusWSService(url, new QName("http://ws.pervoice.it/audiomabox/service/Status/1.0", "StatusWSService"));
 
 		LOGGER.info("----------------- service istanziato");
 		
-		statusWS = service.getStatusWSSoap11();
+		statusWS = service.getPort(StatusWS.class);
 		
 		BindingProvider bp = (BindingProvider)statusWS;
 		bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, serviceStatusUrl);
@@ -50,10 +52,10 @@ public class ServiceStatus {
 		bp.getRequestContext().put(BindingProvider.USERNAME_PROPERTY, username);
 		bp.getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, password);
 		
-		//Set timeout until a connection is established
-		bp.getRequestContext().put("javax.xml.ws.client.connectionTimeout", "6000");
-		//Set timeout until the response is received
-		bp.getRequestContext().put("javax.xml.ws.client.receiveTimeout", "3000");
+//		//Set timeout until a connection is established
+//		bp.getRequestContext().put("javax.xml.ws.client.connectionTimeout", "6000");
+//		//Set timeout until the response is received
+//		bp.getRequestContext().put("javax.xml.ws.client.receiveTimeout", "3000");
 		
 		Binding binding = bp.getBinding();
 

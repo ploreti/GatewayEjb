@@ -71,7 +71,7 @@ public class GatewayManager {
 	private String idDifformita;
 
 	//attivare per test
-	//private int count=0;
+	private int count=0;
 
 
 	public GatewayManager() {
@@ -79,6 +79,7 @@ public class GatewayManager {
 	}
 
 	public void init(String id, String idDifformita) throws  IOException, DbException {
+
 		this.identificativo = id;
 		this.idDifformita = idDifformita;
 
@@ -108,6 +109,8 @@ public class GatewayManager {
             
 			//chiamare il servizio statusService
 			String stato = startServiceStatus();
+			
+			LOGGER.info("____________________________________________" + stato);
 
 			/*
 			 * La richiesta è stata completata da ASR
@@ -137,16 +140,16 @@ public class GatewayManager {
 			 * Da utilizzare come test
 			 * 
 			 */
-			//count++
-			//			if(count>6) {
-			//				timer.cancel();	
-			//
-			//				crm.initClient(propertiesBean.getCrmHost(), propertiesBean.getCrmPort(), propertiesBean.getCrmUser(), propertiesBean.getCrmPassword());
-			//				String crmResponse=crm.startClassification();
-			//				System.out.println(om.writeValueAsString(crmResponse));
-			//
-			//				return;
-			//			}
+//			count++;
+//						if(count>6) {
+//							timer.cancel();	
+//			
+////							crm.initClient(propertiesBean.getCrmHost(), propertiesBean.getCrmPort(), propertiesBean.getCrmUser(), propertiesBean.getCrmPassword());
+////							String crmResponse=crm.startClassification();
+////							System.out.println(om.writeValueAsString(crmResponse));
+//			
+//							throw new Exception("test");
+//						}
 
 
 		} catch (JsonProcessingException e) {
@@ -182,7 +185,13 @@ public class GatewayManager {
 			e.printStackTrace();
 			if (timer != null)
 				timer.cancel();
-			}
+		} catch (Exception e) {
+			dbM.modificaStato(this.idDifformita, 999);
+			LOGGER.error("_______ ERRORE generico ________" + e.getMessage());
+			e.printStackTrace();
+			if (timer != null)
+				timer.cancel();
+		}
 
 	}
 
@@ -213,9 +222,11 @@ public class GatewayManager {
 	 */
 	private String startServiceStatus() throws MalformedURLException, StatusFault {
 		
-		String stato = "";
+		String stato = EnumStatusType.COMPLETED.value();
 		
-		ServiceStatus statusService = new ServiceStatus(propertiesBean.getValore(Parametri.asrStatusUrl), propertiesBean.getValore(Parametri.asrUser), propertiesBean.getValore(Parametri.asrPassword));
+		Boolean isMokcServicesAsr = Boolean.parseBoolean( propertiesBean.getValore(Parametri.isMokcServicesAsr)) ;
+		
+		ServiceStatus statusService = new ServiceStatus(propertiesBean.getValore(Parametri.asrStatusUrl), propertiesBean.getValore(Parametri.asrUser), propertiesBean.getValore(Parametri.asrPassword), isMokcServicesAsr);
 		
 		StatusWS serviceS = statusService.getService();
 
@@ -240,7 +251,9 @@ public class GatewayManager {
 		
 		String testo ="";
 		
-		ServiceDownload downloadService = new ServiceDownload(propertiesBean.getValore(Parametri.asrDownloadUrl), propertiesBean.getValore(Parametri.asrUser), propertiesBean.getValore(Parametri.asrPassword));
+		Boolean isMokcServicesAsr = Boolean.parseBoolean( propertiesBean.getValore(Parametri.isMokcServicesAsr)) ;
+		
+		ServiceDownload downloadService = new ServiceDownload(propertiesBean.getValore(Parametri.asrDownloadUrl), propertiesBean.getValore(Parametri.asrUser), propertiesBean.getValore(Parametri.asrPassword), isMokcServicesAsr);
 		
 		DownloadWS serviceD = downloadService.getService();
 

@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
@@ -75,9 +76,11 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 
 		try {
 
-			String id = "";
+			String id = "1000";
 			
-			ServiceUpload uploadService = new ServiceUpload(propertiesBean.getValore(Parametri.asrUploadUrl), propertiesBean.getValore(Parametri.asrUser), propertiesBean.getValore(Parametri.asrPassword));
+			Boolean isMokcServicesAsr = Boolean.parseBoolean( propertiesBean.getValore(Parametri.isMokcServicesAsr)) ;
+			
+			ServiceUpload uploadService = new ServiceUpload(propertiesBean.getValore(Parametri.asrUploadUrl), propertiesBean.getValore(Parametri.asrUser), propertiesBean.getValore(Parametri.asrPassword), isMokcServicesAsr);
 
 			UploadWS service = uploadService.getService(); 
 
@@ -153,6 +156,13 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 		String messaggio = "modificato";
 
 		try {
+			
+			Properties p = System.getProperties();
+			String _p= p.getProperty("jboss.server.name");
+			
+			System.out.println(_p);
+			
+
 			
 			//dbM.inserisciFilePVTandTesto("aaaa111", "</Trans>", "INDEBITA DISPOSIZIONE A VIA IMPEDITA SEGNALE DI PARTENZA al km 16+300 Roma Anagnina");
 			//dbM.modificaStato("aaaa111", 140);

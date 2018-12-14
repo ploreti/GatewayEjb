@@ -13,6 +13,7 @@ public enum Parametri {
 	asrDownloadUrl,
 	asrStatusUrl,
 	asrUser,
-	asrPassword;
+	asrPassword,
+	isMokcServicesAsr;
 
 }

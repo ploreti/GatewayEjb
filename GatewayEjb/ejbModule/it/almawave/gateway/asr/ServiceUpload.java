@@ -1,7 +1,7 @@
 package it.almawave.gateway.asr;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -37,22 +37,26 @@ public class ServiceUpload {
 	private static final Logger LOGGER = Logger.getLogger(ServiceUpload.class);
 	private UploadWS uploadWS = null;
 
-	public ServiceUpload(String serviceUploadUrl, String username, String password) throws MalformedURLException {
+	public ServiceUpload(String serviceUploadUrl, String username, String password, Boolean isMokcServicesAsr) throws MalformedURLException {
 		
 		try {
-		
 		LOGGER.info("[Costrutture Service Upload INVOKED]");
 
 		URL baseUrl =  it.pervoice.ws.audiomabox.service.upload._1.UploadWSService.class.getResource(".");
 		URL url = new URL(baseUrl, serviceUploadUrl);
+		
 
 		LOGGER.info("----------------- url  " + url.toString());
 		
-		UploadWSService service = null;//new UploadWSService();
-		service = new UploadWSService(url, new QName("http://ws.pervoice.it/audiomabox/service/Upload/1.0/", "UploadWSService"));
+		UploadWSService service = null;
+		if (isMokcServicesAsr)
+			service = new UploadWSService(url, new QName("http://ws.mock.asr.visiteinlinea.it/", "ServiceUpdate"));
+		else
+		    service = new UploadWSService(url, new QName("http://ws.pervoice.it/audiomabox/service/Upload/1.0/", "UploadWSService"));
+		
 
 		LOGGER.info("----------------- service istanziato");
-		uploadWS = service.getUploadWSSoap11();
+		uploadWS = service.getPort(UploadWS.class);
 		
 		
 		BindingProvider bp = (BindingProvider)uploadWS;
@@ -61,10 +65,10 @@ public class ServiceUpload {
 		bp.getRequestContext().put(BindingProvider.USERNAME_PROPERTY, username);
 		bp.getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, password);
 		
-		//Set timeout until a connection is established
-		bp.getRequestContext().put("javax.xml.ws.client.connectionTimeout", "6000");
-		//Set timeout until the response is received
-		bp.getRequestContext().put("javax.xml.ws.client.receiveTimeout", "3000");
+//		//Set timeout until a connection is established
+//		bp.getRequestContext().put("javax.xml.ws.client.connectionTimeout", "6000");
+//		//Set timeout until the response is received
+//		bp.getRequestContext().put("javax.xml.ws.client.receiveTimeout", "3000");
 		
 		Binding binding = bp.getBinding();
 
@@ -77,11 +81,10 @@ public class ServiceUpload {
 		binding.setHandlerChain(handlerList);
 
 		LOGGER.info("[Costrutture Service Upload ENDED]");
-		
 		} catch (Exception e) {
 			e.printStackTrace();
+			throw e;
 		}
-
 
 	}
 
@@ -89,18 +92,22 @@ public class ServiceUpload {
 		return uploadWS;
 	}
 	
-	public ByteArrayDataSource recuperaFile(String url) throws IOException {
+	public ByteArrayDataSource recuperaFile(String url) throws FileNotFoundException {
 		
-		//recuperare il file
-		File file = new File(url); 
-		byte[] data = FileUtils.readFileToByteArray(file);
-		ByteArrayDataSource rawData = new ByteArrayDataSource(data,"application/octet-stream");
-		
-		return  rawData;
+		try {
+			//recuperare il file
+			File file = new File(url); 
+			byte[] data = FileUtils.readFileToByteArray(file);
+			ByteArrayDataSource rawData = new ByteArrayDataSource(data,"application/octet-stream");
+			
+			return  rawData;
+		} catch (Exception e) {
+			throw new FileNotFoundException();
+		}
 		
 	}
 	
-	public UploadRequest initStatusRequest(DoRequestBean request) throws IOException {
+	public UploadRequest initStatusRequest(DoRequestBean request) throws FileNotFoundException  {
 		
 		ByteArrayDataSource rawData = this.recuperaFile(request.getPercorsoFileAudio());
 		

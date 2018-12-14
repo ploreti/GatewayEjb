@@ -4,6 +4,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
@@ -41,10 +42,13 @@ public class DbManager {
     
     public void inserisciRequest(DoRequestBean request, String id) throws DbException {
     	try {
+    		
+    		Properties p = System.getProperties();
+			String nodo = p.getProperty("jboss.server.name");
     	
 	    	Request _request = new Request();
 			_request.setEXT_ID(request.getIdDifformita());
-			_request.setNODE_ID(1);
+			_request.setNODE_ID(nodo);
 			_request.setFILE_URI(request.getPercorsoFileAudio());
 			_request.setTIPO_VISITA(request.getTipoVisita());
 			_request.setDTP(request.getDtp());
@@ -58,7 +62,6 @@ public class DbManager {
 			_requestStatus.setINSERT_DATE(new Date());
 			Status stato = em.find(Status.class, 100);
 			_requestStatus.setSTATUS(stato);
-			_requestStatus.setSYSTEM_ID(1);
 	
 			em.persist(_request);
 			em.persist(_requestStatus);
@@ -80,7 +83,6 @@ public class DbManager {
 			_requestStatus.setINSERT_DATE(new Date());
 			Status stato = em.find(Status.class, idstato);
 			_requestStatus.setSTATUS(stato);
-			_requestStatus.setSYSTEM_ID(1);
 			
 			em.persist(_requestStatus);
     	} catch (Exception e) {

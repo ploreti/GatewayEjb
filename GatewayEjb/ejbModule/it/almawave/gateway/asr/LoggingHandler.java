@@ -49,10 +49,10 @@ public class LoggingHandler implements SOAPHandler<SOAPMessageContext>{
 
 		if (appoFlagIO == 0){
 
-			logger.debug("-----SOAP request-----"+ appoSOAP);
+			logger.info("-----SOAP request-----"+ appoSOAP);
 		} else {
 
-			logger.debug("-----SOAP respons-----"+ appoSOAP);
+			logger.info("-----SOAP respons-----"+ appoSOAP);
 		}
 		
 		return true;
