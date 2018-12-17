@@ -110,14 +110,14 @@ public class ServiceDownload {
 		String filePvt = new String(byteArray, "UTF-8");
 		testi[0] = filePvt;
 		
-		LOGGER.info("_______ filePvt : " + filePvt);
+		//LOGGER.info("_______ filePvt : " + filePvt);
 				
 		Document fileXml = UtilsAsr.convertStringToDocument(filePvt);
 		fileXml.getDocumentElement().normalize();
 		String testo = UtilsAsr.concatena(fileXml);
 		testi[1] = testo;
 		
-		LOGGER.info("_______ testo : " + testo);
+		//LOGGER.info("_______ testo : " + testo);
 		
 		return testi;
 		
