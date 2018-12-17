@@ -84,7 +84,7 @@ public class GatewayManager {
 		this.idDifformita = idDifformita;
 
 		TimerConfig timerConfig = new TimerConfig();
-		timerConfig.setInfo("StatusTimerService_"+this.getIdentificativo());
+		timerConfig.setInfo("StatusTimerService_"+this.getIdDifformita());
 		Long start = Long.valueOf(propertiesBean.getValore(Parametri.initialDuration));
 		Long iter = Long.valueOf(propertiesBean.getValore(Parametri.internalDuration));
 		LOGGER.info("Timer initial duration and internal duration: "+start+" "+ iter);
@@ -156,41 +156,35 @@ public class GatewayManager {
 			dbM.modificaStato(this.idDifformita, 140);
 			LOGGER.error("_______ ERRORE conversione json ________");
 			e.printStackTrace();
-			if (timer != null)
-				timer.cancel();
+			try { timer.cancel(); }catch (Exception ex) {}
 		} catch (DbException e) {
 			dbM.modificaStato(this.idDifformita, e.getCodice());
 			LOGGER.error("_______ ERRORE salvataggio nel db ________");
 			e.printStackTrace();
-			if (timer != null)
-				timer.cancel();
+			try { timer.cancel(); }catch (Exception ex) {}
 		} catch (StatusFault e) {
 			//registrare errore nel db
 			dbM.modificaStato(this.idDifformita, 120);
 			LOGGER.error("_______ ERRORE invocazione servizio Status ________");
 			e.printStackTrace();
-			if (timer != null)
-				timer.cancel();
+			try { timer.cancel(); }catch (Exception ex) {}
 		} catch (DownloadFault e) {
 			//registrare errore nel db
 			dbM.modificaStato(this.idDifformita, 121);
 			LOGGER.error("_______ ERRORE invocazione servizio Download ________");
 			e.printStackTrace();
-			if (timer != null)
-				timer.cancel();
+			try { timer.cancel(); }catch (Exception ex) {}
 		} catch (IOException|ParserConfigurationException|SAXException e) {
 			//registrare errore nel db
 			dbM.modificaStato(this.idDifformita, 141);
 			LOGGER.error("_______ ERRORE conversione oggetto ________");
 			e.printStackTrace();
-			if (timer != null)
-				timer.cancel();
+			try { timer.cancel(); }catch (Exception ex) {}
 		} catch (Exception e) {
 			dbM.modificaStato(this.idDifformita, 999);
 			LOGGER.error("_______ ERRORE generico ________" + e.getMessage());
 			e.printStackTrace();
-			if (timer != null)
-				timer.cancel();
+			try { timer.cancel(); }catch (Exception ex) {}
 		}
 
 	}
@@ -250,6 +244,7 @@ public class GatewayManager {
 	private String startServiceDownload() throws DownloadFault, IOException, ParserConfigurationException, SAXException, DbException {
 		
 		String testo ="";
+
 		
 		Boolean isMokcServicesAsr = Boolean.parseBoolean( propertiesBean.getValore(Parametri.isMokcServicesAsr)) ;
 		
