@@ -19,9 +19,7 @@ import org.jboss.logging.Logger;
 
 import it.almawave.gateway.db.bean.DoRequestBean;
 import it.pervoice.audiomabox.commontypes._1.FileType;
-import it.pervoice.audiomabox.commontypes._1.StepTypeEnum;
 import it.pervoice.audiomabox.commontypes._1.UploadTypeEnum;
-import it.pervoice.audiomabox.services.common._1.PriorityType;
 import it.pervoice.audiomabox.services.upload._1.OutputFormatType;
 import it.pervoice.audiomabox.services.upload._1.UploadRequest;
 import it.pervoice.audiomabox.services.upload._1.UploadRequest.RemoteFile;
@@ -124,16 +122,17 @@ public class ServiceUpload {
 		uploadRequest.setRemoteFile(remoteFile);
 		
 		uploadRequest.setUploadType(UploadTypeEnum.REMOTE_FILE);
-		uploadRequest.setCustomerProvidedId("1");
-		uploadRequest.setManualRevision(true);
-		uploadRequest.setDomainId("ita_ITA_STND_NEWS-ita_ITA_STND_W_DGM");
-		uploadRequest.setPunctuationEnabled(true);
+		//uploadRequest.setCustomerProvidedId("1");
+		//uploadRequest.setManualRevision(true);
+		uploadRequest.setDomainId("ita_ITA_RFI0_VINL-ita_ITA_STND_W_DHD");
+		//uploadRequest.setPunctuationEnabled(true);
 		
-		PriorityType priorityType = new PriorityType();
-		priorityType.setCode("HIGH");
-		uploadRequest.setPriority(priorityType);
+//		PriorityType priorityType = new PriorityType();
+//		priorityType.setCode("HIGH");
+//		uploadRequest.setPriority(priorityType);
 		
-		uploadRequest.setStep(StepTypeEnum.ONE_STEP);
+		//uploadRequest.setStep(StepTypeEnum.ONE_STEP);
+		uploadRequest.setSlots(8);
 		uploadRequest.getOutputFormats().add(OutputFormatType.PVT);
 		
 		return uploadRequest;

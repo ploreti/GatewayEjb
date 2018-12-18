@@ -10,8 +10,11 @@ public enum Parametri {
 	crmUser,
 	crmPassword,
 	asrUploadUrl,
+	simAsrUploadUrl,
 	asrDownloadUrl,
+	simAsrDownloadUrl,
 	asrStatusUrl,
+	simAsrStatusUrl,
 	asrUser,
 	asrPassword,
 	isMokcServicesAsr;

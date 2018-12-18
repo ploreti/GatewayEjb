@@ -79,8 +79,12 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 			String id = "1000";
 			
 			Boolean isMokcServicesAsr = Boolean.parseBoolean( propertiesBean.getValore(Parametri.isMokcServicesAsr)) ;
+			String url = propertiesBean.getValore(Parametri.asrUploadUrl);
+			if (isMokcServicesAsr) url = propertiesBean.getValore(Parametri.simAsrUploadUrl);
+			String user = propertiesBean.getValore(Parametri.asrUser);
+			String pw = propertiesBean.getValore(Parametri.asrPassword);
 			
-			ServiceUpload uploadService = new ServiceUpload(propertiesBean.getValore(Parametri.asrUploadUrl), propertiesBean.getValore(Parametri.asrUser), propertiesBean.getValore(Parametri.asrPassword), isMokcServicesAsr);
+			ServiceUpload uploadService = new ServiceUpload(url, user ,pw , isMokcServicesAsr);
 
 			UploadWS service = uploadService.getService(); 
 
