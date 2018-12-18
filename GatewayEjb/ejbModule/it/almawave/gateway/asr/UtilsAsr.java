@@ -28,10 +28,10 @@ public class UtilsAsr {
 		
 		ClientInfoType clientInfo = new ClientInfoType();
 		
-		clientInfo.setHostname("localhost");
-		clientInfo.setRegistrationCode("61a1b387-3925-4edd-8fc8-9ab424e1f8a9");
-		clientInfo.setProductName("XYZ");
-		clientInfo.setProductVersion("1.0");
+		clientInfo.setHostname("RFI-LAB-WE-INF-VM-IRI-GW-001");
+		clientInfo.setRegistrationCode("bb9fbdae-020f-11e9-bc18-000d3a4561eb");
+		clientInfo.setProductName("RFIVisiteInLinea");
+		clientInfo.setProductVersion("1.0.0");
 		
 		return clientInfo;
 		
