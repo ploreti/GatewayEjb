@@ -17,6 +17,8 @@ import javax.xml.ws.handler.Handler;
 import org.apache.commons.io.FileUtils;
 import org.jboss.logging.Logger;
 
+import it.almawave.gateway.configuration.Parametri;
+import it.almawave.gateway.configuration.PropertiesBean;
 import it.almawave.gateway.db.bean.DoRequestBean;
 import it.pervoice.audiomabox.commontypes._1.FileType;
 import it.pervoice.audiomabox.commontypes._1.UploadTypeEnum;
@@ -37,23 +39,17 @@ public class ServiceUpload {
 
 	public ServiceUpload(String serviceUploadUrl, String username, String password, Boolean isMokcServicesAsr) throws MalformedURLException {
 		
-		try {
 		LOGGER.info("[Costrutture Service Upload INVOKED]");
 
 		URL baseUrl =  it.pervoice.ws.audiomabox.service.upload._1.UploadWSService.class.getResource(".");
 		URL url = new URL(baseUrl, serviceUploadUrl);
-		
-
-		LOGGER.info("----------------- url  " + url.toString());
 		
 		UploadWSService service = null;
 		if (isMokcServicesAsr)
 			service = new UploadWSService(url, new QName("http://ws.mock.asr.visiteinlinea.it/", "ServiceUpdate"));
 		else
 		    service = new UploadWSService(url, new QName("http://ws.pervoice.it/audiomabox/service/Upload/1.0/", "UploadWSService"));
-		
 
-		LOGGER.info("----------------- service istanziato");
 		uploadWS = service.getPort(UploadWS.class);
 		
 		
@@ -62,11 +58,6 @@ public class ServiceUpload {
 		// Add username and password for Basic Authentication
 		bp.getRequestContext().put(BindingProvider.USERNAME_PROPERTY, username);
 		bp.getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, password);
-		
-//		//Set timeout until a connection is established
-//		bp.getRequestContext().put("javax.xml.ws.client.connectionTimeout", "6000");
-//		//Set timeout until the response is received
-//		bp.getRequestContext().put("javax.xml.ws.client.receiveTimeout", "3000");
 		
 		Binding binding = bp.getBinding();
 
@@ -79,10 +70,6 @@ public class ServiceUpload {
 		binding.setHandlerChain(handlerList);
 
 		LOGGER.info("[Costrutture Service Upload ENDED]");
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
-		}
 
 	}
 
@@ -105,12 +92,12 @@ public class ServiceUpload {
 		
 	}
 	
-	public UploadRequest initStatusRequest(DoRequestBean request) throws FileNotFoundException  {
+	public UploadRequest initStatusRequest(DoRequestBean request, PropertiesBean propertiesBean) throws FileNotFoundException  {
 		
 		ByteArrayDataSource rawData = this.recuperaFile(request.getPercorsoFileAudio());
 		
 		UploadRequest uploadRequest = new UploadRequest();
-		uploadRequest.setClientInfo(UtilsAsr.popolaclientInfo());
+		uploadRequest.setClientInfo(UtilsAsr.popolaclientInfo(propertiesBean));
 		
 		//file
 		RemoteFile remoteFile = new RemoteFile();
@@ -122,9 +109,12 @@ public class ServiceUpload {
 		uploadRequest.setRemoteFile(remoteFile);
 		
 		uploadRequest.setUploadType(UploadTypeEnum.REMOTE_FILE);
+		uploadRequest.getOutputFormats().add(OutputFormatType.PVT);
+		uploadRequest.setDomainId(propertiesBean.getValore(Parametri.uploadDomainId)); //ita_ITA_RFI0_VINL-ita_ITA_STND_W_DHD
+		uploadRequest.setSlots(Integer.getInteger(propertiesBean.getValore(Parametri.uploadSlot))); //8
+
 		//uploadRequest.setCustomerProvidedId("1");
 		//uploadRequest.setManualRevision(true);
-		uploadRequest.setDomainId("ita_ITA_RFI0_VINL-ita_ITA_STND_W_DHD");
 		//uploadRequest.setPunctuationEnabled(true);
 		
 //		PriorityType priorityType = new PriorityType();
@@ -132,8 +122,6 @@ public class ServiceUpload {
 //		uploadRequest.setPriority(priorityType);
 		
 		//uploadRequest.setStep(StepTypeEnum.ONE_STEP);
-		uploadRequest.setSlots(8);
-		uploadRequest.getOutputFormats().add(OutputFormatType.PVT);
 		
 		return uploadRequest;
 		
