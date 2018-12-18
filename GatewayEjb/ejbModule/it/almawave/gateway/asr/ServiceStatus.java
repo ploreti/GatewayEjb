@@ -12,6 +12,7 @@ import javax.xml.ws.handler.Handler;
 
 import org.jboss.logging.Logger;
 
+import it.almawave.gateway.configuration.PropertiesBean;
 import it.pervoice.audiomabox.services.common._1.EnumStatusType;
 import it.pervoice.audiomabox.services.common._1.FaultType;
 import it.pervoice.audiomabox.services.status._1.JobFileType;
@@ -34,15 +35,11 @@ public class ServiceStatus {
 		URL baseUrl =  it.pervoice.ws.audiomabox.service.status._1.StatusWSService.class.getResource(".");
 		URL url = new URL(baseUrl, serviceStatusUrl);
 		
-		LOGGER.info("----------------- url  " + url.toString());
-		
 		StatusWSService service = null;
 		if (isMokcServicesAsr)
 			service = new StatusWSService(url, new QName("http://ws.mock.asr.visiteinlinea.it/", "ServiceStatus"));
 		else
 			service = new StatusWSService(url, new QName("http://ws.pervoice.it/audiomabox/service/Status/1.0", "StatusWSService"));
-
-		LOGGER.info("----------------- service istanziato");
 		
 		statusWS = service.getPort(StatusWS.class);
 		
@@ -51,11 +48,6 @@ public class ServiceStatus {
 		// Add username and password for Basic Authentication
 		bp.getRequestContext().put(BindingProvider.USERNAME_PROPERTY, username);
 		bp.getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, password);
-		
-//		//Set timeout until a connection is established
-//		bp.getRequestContext().put("javax.xml.ws.client.connectionTimeout", "6000");
-//		//Set timeout until the response is received
-//		bp.getRequestContext().put("javax.xml.ws.client.receiveTimeout", "3000");
 		
 		Binding binding = bp.getBinding();
 
@@ -76,10 +68,10 @@ public class ServiceStatus {
 	}
 	
 	
-	public StatusRequest initStatusRequest(String identificativo) {
+	public StatusRequest initStatusRequest(String identificativo, PropertiesBean propertiesBean) {
 		
 		StatusRequest statusRequest = new StatusRequest();
-		statusRequest.setClientInfo(UtilsAsr.popolaclientInfo());
+		statusRequest.setClientInfo(UtilsAsr.popolaclientInfo(propertiesBean));
 		statusRequest.setJobId(Long.parseLong(identificativo));
 		
 		return statusRequest;
@@ -95,7 +87,6 @@ public class ServiceStatus {
 		} 
 
 		JobFileType job = statusResponse.getJob().get(0);
-		LOGGER.info("_______  job stato : " + job.getStatus().value());
 
 		//job in errore 
 		if(job.getStatus().value().equals(EnumStatusType.FAILED.value())) {
