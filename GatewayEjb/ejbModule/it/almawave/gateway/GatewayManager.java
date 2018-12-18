@@ -219,8 +219,12 @@ public class GatewayManager {
 		String stato = EnumStatusType.COMPLETED.value();
 		
 		Boolean isMokcServicesAsr = Boolean.parseBoolean( propertiesBean.getValore(Parametri.isMokcServicesAsr)) ;
+		String url = propertiesBean.getValore(Parametri.asrStatusUrl);
+		if (isMokcServicesAsr) url = propertiesBean.getValore(Parametri.simAsrStatusUrl);
+		String user = propertiesBean.getValore(Parametri.asrUser);
+		String pw = propertiesBean.getValore(Parametri.asrPassword);
 		
-		ServiceStatus statusService = new ServiceStatus(propertiesBean.getValore(Parametri.asrStatusUrl), propertiesBean.getValore(Parametri.asrUser), propertiesBean.getValore(Parametri.asrPassword), isMokcServicesAsr);
+		ServiceStatus statusService = new ServiceStatus(url, user, pw, isMokcServicesAsr);
 		
 		StatusWS serviceS = statusService.getService();
 
@@ -247,8 +251,12 @@ public class GatewayManager {
 
 		
 		Boolean isMokcServicesAsr = Boolean.parseBoolean( propertiesBean.getValore(Parametri.isMokcServicesAsr)) ;
+		String url = propertiesBean.getValore(Parametri.asrDownloadUrl);
+		if (isMokcServicesAsr) url = propertiesBean.getValore(Parametri.simAsrDownloadUrl);
+		String user = propertiesBean.getValore(Parametri.asrUser);
+		String pw = propertiesBean.getValore(Parametri.asrPassword);
 		
-		ServiceDownload downloadService = new ServiceDownload(propertiesBean.getValore(Parametri.asrDownloadUrl), propertiesBean.getValore(Parametri.asrUser), propertiesBean.getValore(Parametri.asrPassword), isMokcServicesAsr);
+		ServiceDownload downloadService = new ServiceDownload(url, user, pw, isMokcServicesAsr);
 		
 		DownloadWS serviceD = downloadService.getService();
 
