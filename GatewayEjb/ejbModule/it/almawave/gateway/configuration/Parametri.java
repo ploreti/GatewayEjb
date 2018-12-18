@@ -17,6 +17,12 @@ public enum Parametri {
 	simAsrStatusUrl,
 	asrUser,
 	asrPassword,
-	isMokcServicesAsr;
+	isMokcServicesAsr,
+	clientInfoProductName,
+	clientInfoProductVersion,
+	clientInfoRegistrationCode,
+	clientInfoHostName,
+	uploadDomainId,
+	uploadSlot;
 
 }
