@@ -22,41 +22,39 @@ import it.pervoice.ws.audiomabox.service.status._1.StatusWS;
 import it.pervoice.ws.audiomabox.service.status._1.StatusWSService;
 
 public class ServiceStatus {
-	
-	
+
+
 	private static final Logger LOGGER = Logger.getLogger(ServiceStatus.class);
 	private StatusWS statusWS = null;
 
 	public ServiceStatus(String serviceStatusUrl, String username, String password, Boolean isMokcServicesAsr) throws MalformedURLException {
-		
+
 		LOGGER.info("[Costrutture Service Status INVOKED]");
 
 		URL baseUrl =  it.pervoice.ws.audiomabox.service.status._1.StatusWSService.class.getResource(".");
 		URL url = new URL(baseUrl, serviceStatusUrl);
-		
-		LOGGER.info("----------------- url  " + url.toString());
-		
+		LOGGER.info("url " + url.toString());
+
 		StatusWSService service = null;
 		if (isMokcServicesAsr)
 			service = new StatusWSService(url, new QName("http://ws.mock.asr.visiteinlinea.it/", "ServiceStatus"));
 		else
 			service = new StatusWSService(url, new QName("http://ws.pervoice.it/audiomabox/service/Status/1.0", "StatusWSService"));
 
-		LOGGER.info("----------------- service istanziato");
-		
+
 		statusWS = service.getPort(StatusWS.class);
-		
+
 		BindingProvider bp = (BindingProvider)statusWS;
 		bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, serviceStatusUrl);
 		// Add username and password for Basic Authentication
 		bp.getRequestContext().put(BindingProvider.USERNAME_PROPERTY, username);
 		bp.getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, password);
-		
-//		//Set timeout until a connection is established
-//		bp.getRequestContext().put("javax.xml.ws.client.connectionTimeout", "6000");
-//		//Set timeout until the response is received
-//		bp.getRequestContext().put("javax.xml.ws.client.receiveTimeout", "3000");
-		
+
+		//		//Set timeout until a connection is established
+		//		bp.getRequestContext().put("javax.xml.ws.client.connectionTimeout", "6000");
+		//		//Set timeout until the response is received
+		//		bp.getRequestContext().put("javax.xml.ws.client.receiveTimeout", "3000");
+
 		Binding binding = bp.getBinding();
 
 		// Add the logging handler
@@ -74,45 +72,51 @@ public class ServiceStatus {
 	public StatusWS getService() {
 		return statusWS;
 	}
-	
-	
+
+
 	public StatusRequest initStatusRequest(String identificativo) {
-		
+
 		StatusRequest statusRequest = new StatusRequest();
 		statusRequest.setClientInfo(UtilsAsr.popolaclientInfo());
 		statusRequest.setJobId(Long.parseLong(identificativo));
-		
+
 		return statusRequest;
-		
+
 	}
-	
+
 	public String elaboraResonse(StatusResponse statusResponse, String identificativo) throws StatusFault {
 		String stato = "";
-		
+
 		if (statusResponse.getJob().isEmpty()) {
 			LOGGER.error("_______ job NON trovato ________");
 			throw new StatusFault("nessun job trovato per identificativo inserito " + identificativo, null) ;
 		} 
 
 		JobFileType job = statusResponse.getJob().get(0);
-		LOGGER.info("_______  job stato : " + job.getStatus().value());
 
 		//job in errore 
-		if(job.getStatus().value().equals(EnumStatusType.FAILED.value())) {
+		if(
+				job.getStatus().value().equals(EnumStatusType.FAILED.value())||
+				job.getStatus().value().equals(EnumStatusType.SUBMITERROR.value())||
+				job.getStatus().value().equals(EnumStatusType.PROCESSINGERROR.value())
+				)
+		{
 			LOGGER.info("_______ job terminato con errore : " + job.getErrCode());
-			FaultType fault = new FaultType();
+			FaultType fault = new FaultType(); 
 			fault.setErrorCode(String.valueOf( job.getErrCode() ));
 			fault.setErrorMessage(job.getStatusReason());
 			throw new StatusFault("job terminato con errore", fault) ;
 		}
-		
+
+
+
 		stato = job.getStatus().value();
-		
+
 		return stato;
-		
+
 	}
 
-	
-	
+
+
 
 }

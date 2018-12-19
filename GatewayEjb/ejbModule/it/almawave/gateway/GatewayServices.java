@@ -75,9 +75,6 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 	public String doRequest(DoRequestBean request) {
 
 		try {
-
-			String id = "1000";
-			
 			Boolean isMokcServicesAsr = Boolean.parseBoolean( propertiesBean.getValore(Parametri.isMokcServicesAsr)) ;
 			String url = propertiesBean.getValore(Parametri.asrUploadUrl);
 			if (isMokcServicesAsr) url = propertiesBean.getValore(Parametri.simAsrUploadUrl);
@@ -90,7 +87,7 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 
 			UploadResponse uploadResponse = service.upload(uploadService.initStatusRequest(request));
 			
-			id = uploadService.elaboraResonse(uploadResponse);
+			String id = uploadService.elaboraResonse(uploadResponse);
 
 			//memorizzare nel db la requestee lo status
 			dbM.inserisciRequest(request, id);

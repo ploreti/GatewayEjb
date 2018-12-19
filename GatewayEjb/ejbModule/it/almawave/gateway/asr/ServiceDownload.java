@@ -38,7 +38,7 @@ public class ServiceDownload {
 		URL baseUrl =  it.pervoice.ws.audiomabox.service.download._1.DownloadWSService.class.getResource(".");
 		URL url = new URL(baseUrl, serviceDownloadUrl);
 		
-		LOGGER.info("----------------- url  " + url.toString());
+		LOGGER.info("url " + url.toString());
 		
 		DownloadWSService service = null;
 		if (isMokcServicesAsr)
@@ -46,8 +46,6 @@ public class ServiceDownload {
 		else
 			service = new DownloadWSService(url, new QName("http://ws.pervoice.it/audiomabox/service/Download/1.0/", "DownloadWSService"));
 		
-		LOGGER.info("----------------- service istanziato");
-
 		downloadWS = service.getPort(DownloadWS.class);
 		
 		BindingProvider bp = (BindingProvider)downloadWS;

@@ -44,7 +44,7 @@ public class ServiceUpload {
 		URL url = new URL(baseUrl, serviceUploadUrl);
 		
 
-		LOGGER.info("----------------- url  " + url.toString());
+		LOGGER.info("url " + url.toString());
 		
 		UploadWSService service = null;
 		if (isMokcServicesAsr)
@@ -52,8 +52,6 @@ public class ServiceUpload {
 		else
 		    service = new UploadWSService(url, new QName("http://ws.pervoice.it/audiomabox/service/Upload/1.0/", "UploadWSService"));
 		
-
-		LOGGER.info("----------------- service istanziato");
 		uploadWS = service.getPort(UploadWS.class);
 		
 		
