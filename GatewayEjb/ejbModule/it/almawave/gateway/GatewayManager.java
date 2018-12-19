@@ -2,7 +2,6 @@ package it.almawave.gateway;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.Date;
 
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
@@ -13,8 +12,6 @@ import javax.ejb.Timeout;
 import javax.ejb.Timer;
 import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.http.client.HttpResponseException;
@@ -63,10 +60,6 @@ public class GatewayManager {
 	private String identificativo = null;
 	//EXT_ID
 	private String idDifformita;
-
-	//attivare per test
-	private int count=0;
-
 
 	public GatewayManager() {
 
@@ -128,21 +121,7 @@ public class GatewayManager {
 
 			}
 
-			/*
-			 * Da utilizzare come test
-			 * 
-			 */
-			//			count++;
-			//						if(count>6) {
-			//							timer.cancel();	
-			//			
-			////							crm.initClient(propertiesBean.getCrmHost(), propertiesBean.getCrmPort(), propertiesBean.getCrmUser(), propertiesBean.getCrmPassword());
-			////							String crmResponse=crm.startClassification();
-			////							System.out.println(om.writeValueAsString(crmResponse));
-			//			
-			//							throw new Exception("test");
-			//						}
-
+			
 
 		} catch (JsonProcessingException e) {
 			dbM.modificaStato(this.idDifformita, 140);

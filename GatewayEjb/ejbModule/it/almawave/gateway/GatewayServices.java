@@ -46,8 +46,10 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 	@EJB
 	DbManager dbM;
 
+//	@EJB
+//	GatewayManager gm;
 	@EJB
-	GatewayManager gm;
+	GatewayScheduler sj;
 
 	@EJB
 	PropertiesBean propertiesBean;
@@ -93,7 +95,9 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 			dbM.inserisciRequest(request, id);
 			
 			//laciare il timer per il recupero dellostatus
-			gm.init(id, request.getIdDifformita());
+			//gm.init(id, request.getIdDifformita());
+			Long start = Long.valueOf(propertiesBean.getValore(Parametri.initialDuration));
+			sj.init(id, request.getIdDifformita(), start);
 
 			return request.getIdDifformita();
 
@@ -150,8 +154,6 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 
 	}
 
-
-
 	public String tester() {
 
 		String messaggio = "modificato";
@@ -174,6 +176,77 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 
 	}
 
+	/*
+	 * Only for test
+	 */
+	public String startClassification() throws HttpResponseException, IOException, DbException {
+		GatewayResponse gr=new GatewayResponse();
+		String testo = "urgente canalizzazione scoperta";
+		crm.initClient(propertiesBean.getValore(Parametri.crmHost), Integer.parseInt(propertiesBean.getValore(Parametri.crmPort)), propertiesBean.getValore(Parametri.crmUser), propertiesBean.getValore(Parametri.crmPassword));
 
+		CRMRequestBean bean = new CRMRequestBean();
+		List<String> classificationLogicList = new ArrayList<String>();
+		//TODO: comporre il classificationLogicList
+		classificationLogicList.add("Visita Al Binario a Piedi");
+		bean.setClassificationLogicList(classificationLogicList);
+		bean.setTextMessage(testo);
+		ObjectMapper objectMapper = new ObjectMapper();
+		String jsonString = objectMapper.writeValueAsString(bean);
+
+		CloseableHttpResponse crmResponse = crm.doPostJson(jsonString, propertiesBean.getValore(Parametri.crmClassificationEndPoint));
+		String responseString=new BasicResponseHandler().handleResponse(crmResponse);
+		ObjectMapper om=new ObjectMapper();
+		StartClassficationVOOut startClssificationObject=om.readValue(responseString, StartClassficationVOOut.class);
+
+		System.out.println("-----------------"+responseString);
+		
+		Map<String,Object> addProp=startClssificationObject.getAdditionalProperties();
+		Iterator<String> keyIterator=addProp.keySet().iterator();
+		while(keyIterator.hasNext()) {
+			System.out.println("-----------------"+keyIterator.next());
+		}
+		
+
+		ArrayList<LinkedHashMap<String,Object>> tupleScores=(ArrayList<LinkedHashMap<String,Object>>)addProp.get("tupleScores");
+		
+        
+        List<Tuple> tupleList=new ArrayList<Tuple>();
+        
+		tupleScores.forEach(item->{
+			Tuple tuple=new Tuple();
+			tuple.setValue((String)item.get("label"));
+			tuple.setRank((Integer)item.get("rankPosition"));
+			System.out.println(item.get("label"));
+			System.out.println(item.get("rankPosition"));
+			tupleList.add(tuple);
+			}
+		);
+		
+		gr.setIsUrgent(false);
+		ArrayList<LinkedHashMap<String,Object>> extractedConcepts=(ArrayList<LinkedHashMap<String,Object>>)addProp.get("extractedConcepts");
+		
+		extractedConcepts.forEach(item->{
+			
+			String resourceURI = (String)item.get("resourceURI");
+			int index = resourceURI.indexOf("#urgente");
+			if (index > 0)gr.setIsUrgent(true);
+
+			System.out.println(item.get("resourceURI"));
+
+			}
+		);
+		
+		String plainText=(String)addProp.get("plainText");
+		System.out.println(plainText);
+		gr.setTuples(tupleList);
+		gr.setPlainText(plainText);
+		
+		dbM.inserisciResponse("aaaa111", gr);
+		
+		String o = om.writeValueAsString(gr);
+		
+		LOGGER.info("-------------------------------\n " + o);
+		return o;
+	}
 
 }
