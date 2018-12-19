@@ -1,11 +1,9 @@
 package it.almawave.gateway;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.Date;
 
-import javax.activation.DataHandler;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.ejb.EJB;
@@ -21,27 +19,20 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.http.client.HttpResponseException;
 import org.jboss.logging.Logger;
-import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import it.almawave.gateway.asr.ServiceDownload;
 import it.almawave.gateway.asr.ServiceStatus;
-import it.almawave.gateway.asr.UtilsAsr;
 import it.almawave.gateway.bean.GatewayResponse;
 import it.almawave.gateway.configuration.Parametri;
 import it.almawave.gateway.configuration.PropertiesBean;
 import it.almawave.gateway.crm.CRMClient;
 import it.almawave.gateway.db.DbManager;
 import it.almawave.gateway.db.excption.DbException;
-import it.pervoice.audiomabox.commontypes._1.OutputType;
 import it.pervoice.audiomabox.services.common._1.EnumStatusType;
-import it.pervoice.audiomabox.services.common._1.FaultType;
-import it.pervoice.audiomabox.services.download._1.DownloadRequest;
 import it.pervoice.audiomabox.services.download._1.DownloadResponse;
-import it.pervoice.audiomabox.services.status._1.JobFileType;
-import it.pervoice.audiomabox.services.status._1.StatusRequest;
 import it.pervoice.audiomabox.services.status._1.StatusResponse;
 import it.pervoice.ws.audiomabox.service.download._1.DownloadFault;
 import it.pervoice.ws.audiomabox.service.download._1.DownloadWS;
@@ -100,93 +91,94 @@ public class GatewayManager {
 
 	@Timeout
 	public void startProcess(Timer timer) throws DbException{
-		
-			try {
-				if (identificativo == null) {
-					//timer.cancel();
-					removeTimer();
-					return;
-				}
 
-				//chiamare il servizio statusService
-				String stato = startServiceStatus();
-
-				LOGGER.info(composeHeaderMsg(timer.getInfo() +" "+stato));
-
-				/*
-				 * La richiesta è stata completata da ASR
-				 * Posso procedere con il resto del processo
-				 */
-				if (stato.equals(EnumStatusType.COMPLETED.value()) ){
-
-					//timer.cancel();
-					removeTimer();
-					//chiamare il servizio Download
-					String testo = startServiceDownload();
-                    LOGGER.info(testo);
-					//TODO: solo per test
-					testo = "abrasioni su piano rotolamento corda alt dal chilometro 206+470 206+570";
-
-					//chiamo il servizio del cmr
-					GatewayResponse crmResponse = startClassification(testo);
-
-					//mofico lo stato in concluso
-					dbM.modificaStato(this.idDifformita, 110);//completata
-
-					LOGGER.info(composeHeaderMsg(this.idDifformita +" PROCESSO CONCLUSO"));
-
-				}
-
-				/*
-				 * Da utilizzare come test
-				 * 
-				 */
-				//			count++;
-				//						if(count>6) {
-				//							timer.cancel();	
-				//			
-				////							crm.initClient(propertiesBean.getCrmHost(), propertiesBean.getCrmPort(), propertiesBean.getCrmUser(), propertiesBean.getCrmPassword());
-				////							String crmResponse=crm.startClassification();
-				////							System.out.println(om.writeValueAsString(crmResponse));
-				//			
-				//							throw new Exception("test");
-				//						}
-
-
-			} catch (JsonProcessingException e) {
-				dbM.modificaStato(this.idDifformita, 140);
-				LOGGER.error("_______ ERRORE conversione json ________");
-				e.printStackTrace();
-				try { timer.cancel(); }catch (Exception ex) {}
-			} catch (DbException e) {
-				dbM.modificaStato(this.idDifformita, e.getCodice());
-				LOGGER.error("_______ ERRORE salvataggio nel db ________");
-				e.printStackTrace();
-				try { timer.cancel(); }catch (Exception ex) {}
-			} catch (StatusFault e) {
-				//registrare errore nel db
-				dbM.modificaStato(this.idDifformita, 120);
-				LOGGER.error("_______ ERRORE invocazione servizio Status ________");
-				e.printStackTrace();
-				try { timer.cancel(); }catch (Exception ex) {}
-			} catch (DownloadFault e) {
-				//registrare errore nel db
-				dbM.modificaStato(this.idDifformita, 121);
-				LOGGER.error("_______ ERRORE invocazione servizio Download ________");
-				e.printStackTrace();
-				try { timer.cancel(); }catch (Exception ex) {}
-			} catch (IOException|ParserConfigurationException|SAXException e) {
-				//registrare errore nel db
-				dbM.modificaStato(this.idDifformita, 141);
-				LOGGER.error("_______ ERRORE conversione oggetto ________");
-				e.printStackTrace();
-				try { timer.cancel(); }catch (Exception ex) {}
-			} catch (Exception e) {
-				dbM.modificaStato(this.idDifformita, 999);
-				LOGGER.error("_______ ERRORE generico ________" + e.getMessage());
-				e.printStackTrace();
-				try { timer.cancel(); }catch (Exception ex) {}
+		try {
+			if (identificativo == null) {
+				//timer.cancel();
+				removeTimer();
+				return;
 			}
+
+			//chiamare il servizio statusService
+			String stato = startServiceStatus();
+
+			LOGGER.info(composeHeaderMsg(timer.getInfo() +" "+stato));
+
+			/*
+			 * La richiesta è stata completata da ASR
+			 * Posso procedere con il resto del processo
+			 */
+			if (stato.equals(EnumStatusType.COMPLETED.value()) ){
+
+				//timer.cancel();
+				removeTimer();
+				//chiamare il servizio Download
+				String testo = startServiceDownload();
+				LOGGER.info(testo);
+				//TODO: solo per test
+				testo = "abrasioni su piano rotolamento corda alt dal chilometro 206+470 206+570";
+
+				//chiamo il servizio del cmr
+				GatewayResponse crmResponse = startClassification(testo);
+
+				//mofico lo stato in concluso
+				dbM.modificaStato(this.idDifformita, 110);//completata
+
+				LOGGER.info(composeHeaderMsg(this.idDifformita +" PROCESSO CONCLUSO"));
+
+			}
+
+			/*
+			 * Da utilizzare come test
+			 * 
+			 */
+			//			count++;
+			//						if(count>6) {
+			//							timer.cancel();	
+			//			
+			////							crm.initClient(propertiesBean.getCrmHost(), propertiesBean.getCrmPort(), propertiesBean.getCrmUser(), propertiesBean.getCrmPassword());
+			////							String crmResponse=crm.startClassification();
+			////							System.out.println(om.writeValueAsString(crmResponse));
+			//			
+			//							throw new Exception("test");
+			//						}
+
+
+		} catch (JsonProcessingException e) {
+			dbM.modificaStato(this.idDifformita, 140);
+			LOGGER.error("_______ ERRORE conversione json ________");
+			e.printStackTrace();
+			try { timer.cancel(); }catch (Exception ex) {}
+		} catch (DbException e) {
+			dbM.modificaStato(this.idDifformita, e.getCodice());
+			LOGGER.error("_______ ERRORE salvataggio nel db ________");
+			e.printStackTrace();
+			try { timer.cancel(); }catch (Exception ex) {}
+		} catch (StatusFault e) {
+			//registrare errore nel db
+			dbM.modificaStato(this.idDifformita, 120);
+			LOGGER.error("_______ ERRORE invocazione servizio Status ________");
+			e.printStackTrace();
+			try { timer.cancel(); }catch (Exception ex) {}
+		} catch (DownloadFault e) {
+			//registrare errore nel db
+			dbM.modificaStato(this.idDifformita, 121);
+			LOGGER.error("_______ ERRORE invocazione servizio Download ________");
+			e.printStackTrace();
+			try { timer.cancel(); }catch (Exception ex) {}
+		} catch (IOException|ParserConfigurationException|SAXException e) {
+			//registrare errore nel db
+			dbM.modificaStato(this.idDifformita, 141);
+			LOGGER.error("_______ ERRORE conversione oggetto ________");
+			e.printStackTrace();
+			try { timer.cancel(); }catch (Exception ex) {}
+		} catch (Exception e) {
+			dbM.modificaStato(this.idDifformita, 999);
+			LOGGER.error("_______ ERRORE generico ________" + e.getMessage());
+			e.printStackTrace();
+			try { timer.cancel(); }catch (Exception ex) {}
+
+		}
 	}
 
 
@@ -228,7 +220,7 @@ public class GatewayManager {
 
 		StatusWS serviceS = statusService.getService();
 
-		StatusResponse statusResponse = serviceS.status(statusService.initStatusRequest(identificativo));
+		StatusResponse statusResponse = serviceS.status(statusService.initStatusRequest(identificativo, propertiesBean));
 
 		stato = statusService.elaboraResonse(statusResponse, identificativo);
 
@@ -260,7 +252,7 @@ public class GatewayManager {
 
 		DownloadWS serviceD = downloadService.getService();
 
-		DownloadResponse downloadResponse = serviceD.download(downloadService.initDownloadRequest(identificativo));
+		DownloadResponse downloadResponse = serviceD.download(downloadService.initDownloadRequest(identificativo, propertiesBean));
 
 		String[] testi = downloadService.elaboraResonse(downloadResponse, identificativo);
 

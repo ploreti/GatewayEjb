@@ -16,22 +16,30 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import it.almawave.gateway.configuration.Parametri;
+import it.almawave.gateway.configuration.PropertiesBean;
 import it.pervoice.audiomabox.services.common._1.ClientInfoType;
 
 public class UtilsAsr {
 	
-	
 	/*
 	 * metodo per popolare il clientInfo per tutte le chiate ai servi asr
 	 */
-	public static ClientInfoType popolaclientInfo() {
+	public static ClientInfoType popolaclientInfo(PropertiesBean propertiesBean) {
 		
 		ClientInfoType clientInfo = new ClientInfoType();
 		
-		clientInfo.setHostname("RFI-LAB-WE-INF-VM-IRI-GW-001");
-		clientInfo.setRegistrationCode("bb9fbdae-020f-11e9-bc18-000d3a4561eb");
-		clientInfo.setProductName("RFIVisiteInLinea");
-		clientInfo.setProductVersion("1.0.0");
+		//System.out.println("________________________________clientInfoHostName : " + propertiesBean.getValore(Parametri.clientInfoHostName));
+		
+		clientInfo.setHostname(propertiesBean.getValore(Parametri.clientInfoHostName));
+		clientInfo.setRegistrationCode(propertiesBean.getValore(Parametri.clientInfoRegistrationCode));
+		clientInfo.setProductName(propertiesBean.getValore(Parametri.clientInfoProductName));
+		clientInfo.setProductVersion(propertiesBean.getValore(Parametri.clientInfoProductVersion));
+		
+//		clientInfo.setHostname("RFI-LAB-WE-INF-VM-IRI-GW-001");
+//		clientInfo.setRegistrationCode("bb9fbdae-020f-11e9-bc18-000d3a4561eb");
+//		clientInfo.setProductName("RFIVisiteInLinea");
+//		clientInfo.setProductVersion("1.0.0");
 		
 		return clientInfo;
 		
@@ -103,8 +111,6 @@ public class UtilsAsr {
 	}
 	
 	public static void main(String[] args) {
-
-
 
 		BufferedReader br = null;
 		FileReader fr = null;

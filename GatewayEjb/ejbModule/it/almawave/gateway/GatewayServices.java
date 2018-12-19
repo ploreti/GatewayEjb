@@ -85,7 +85,7 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 
 			UploadWS service = uploadService.getService(); 
 
-			UploadResponse uploadResponse = service.upload(uploadService.initStatusRequest(request));
+			UploadResponse uploadResponse = service.upload(uploadService.initStatusRequest(request, propertiesBean));
 			
 			String id = uploadService.elaboraResonse(uploadResponse);
 
@@ -163,47 +163,6 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 			
 			System.out.println(_p);
 			
-
-			
-			//dbM.inserisciFilePVTandTesto("aaaa111", "</Trans>", "INDEBITA DISPOSIZIONE A VIA IMPEDITA SEGNALE DI PARTENZA al km 16+300 Roma Anagnina");
-			//dbM.modificaStato("aaaa111", 140);
-			
-			
-
-//			File file = new File("/opt/visiteinlinea/simulator/Registrazione.m4a"); 
-//			byte[] data = FileUtils.readFileToByteArray(file);
-//			ByteArrayDataSource rawData = new ByteArrayDataSource(data,"application/octet-stream");
-//
-//			LOGGER.info("----------------- file letto + " + file.getName());
-			
-//			ServiceDownload serviceDownload = new ServiceDownload(propertiesBean.getAsrDownloadUrl(), propertiesBean.getAsrUser(), propertiesBean.getAsrPassword());
-//			
-//			DownloadWS service = serviceDownload.getService();
-//			
-//			DownloadRequest downloadRequest = new DownloadRequest();
-//			
-//			downloadRequest.setClientInfo(UtilsAsr.popolaclientInfo());
-//			downloadRequest.setJobId(1500L);
-//			downloadRequest.setFormat(OutputType.PVT);
-//
-//			DownloadResponse downloadResponse = service.download(downloadRequest);
-
-//			UploadWS service = new ServiceUpload(propertiesBean.getAsrUploadUrl(), propertiesBean.getAsrUser(), propertiesBean.getAsrPassword()).getService(); 
-//
-//			UploadRequest uploadRequest = new UploadRequest();
-//			//file
-//			RemoteFile remoteFile = new RemoteFile();
-//			FileType fileType = new FileType(); 
-//			fileType.setName(file.getName());
-//			DataHandler dataHandler =  new DataHandler(rawData);
-//			fileType.setData(dataHandler);
-//			remoteFile.setFile(fileType);
-//			uploadRequest.setRemoteFile(remoteFile);
-//
-//			UploadResponse uploadResponse = service.upload(uploadRequest);
-//
-//			messaggio += uploadResponse.toString();
-
 		}catch (Exception e) {
 			e.printStackTrace();
 			return "Errore : " + e.getMessage();
@@ -215,61 +174,6 @@ public class GatewayServices implements GatewayServicesRemote, GatewayServicesLo
 
 	}
 
-	/*
-	 * Only for test
-	 */
-	public String startClassification() throws HttpResponseException, IOException, DbException {
-		GatewayResponse gr=new GatewayResponse();
-		String testo = "abrasioni su piano rotolamento corda alt dal chilometro 206+470 206+570";
-		crm.initClient(propertiesBean.getValore(Parametri.crmHost), Integer.parseInt(propertiesBean.getValore(Parametri.crmPort)), propertiesBean.getValore(Parametri.crmUser), propertiesBean.getValore(Parametri.crmPassword));
-
-		CRMRequestBean bean = new CRMRequestBean();
-		List<String> classificationLogicList = new ArrayList<String>();
-		//TODO: comporre il classificationLogicList
-		classificationLogicList.add("Visita Al Binario a Piedi");
-		bean.setClassificationLogicList(classificationLogicList);
-		bean.setTextMessage(testo);
-		ObjectMapper objectMapper = new ObjectMapper();
-		String jsonString = objectMapper.writeValueAsString(bean);
-
-		CloseableHttpResponse crmResponse = crm.doPostJson(jsonString, propertiesBean.getValore(Parametri.crmClassificationEndPoint));
-		String responseString=new BasicResponseHandler().handleResponse(crmResponse);
-		ObjectMapper om=new ObjectMapper();
-		StartClassficationVOOut startClssificationObject=om.readValue(responseString, StartClassficationVOOut.class);
-
-		Map<String,Object> addProp=startClssificationObject.getAdditionalProperties();
-		Iterator<String> keyIterator=addProp.keySet().iterator();
-		while(keyIterator.hasNext()) {
-			System.out.println("-----------------"+keyIterator.next());
-		}
-
-		ArrayList<LinkedHashMap<String,Object>> tupleScores=(ArrayList<LinkedHashMap<String,Object>>)addProp.get("tupleScores");
-		
-        
-        List<Tuple> tupleList=new ArrayList<Tuple>();
-        
-		tupleScores.forEach(item->{
-			Tuple tuple=new Tuple();
-			tuple.setValue((String)item.get("label"));
-			tuple.setRank((Integer)item.get("rankPosition"));
-			System.out.println(item.get("label"));
-			System.out.println(item.get("rankPosition"));
-			tupleList.add(tuple);
-		}
-				);
-		
-		String plainText=(String)addProp.get("plainText");
-		System.out.println(plainText);
-		gr.setTuples(tupleList);
-		gr.setPlainText(plainText);
-		
-		dbM.inserisciResponse("aaaa111", gr);
-		
-		String o = om.writeValueAsString(gr);
-		
-		LOGGER.info("-------------------------------\n " + o);
-		return o;
-	}
 
 
 }

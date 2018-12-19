@@ -18,6 +18,7 @@ import org.jboss.logging.Logger;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import it.almawave.gateway.configuration.PropertiesBean;
 import it.pervoice.audiomabox.commontypes._1.OutputType;
 import it.pervoice.audiomabox.services.download._1.DownloadRequest;
 import it.pervoice.audiomabox.services.download._1.DownloadResponse;
@@ -38,6 +39,7 @@ public class ServiceDownload {
 		URL baseUrl =  it.pervoice.ws.audiomabox.service.download._1.DownloadWSService.class.getResource(".");
 		URL url = new URL(baseUrl, serviceDownloadUrl);
 		
+
 		LOGGER.info("url " + url.toString());
 		
 		DownloadWSService service = null;
@@ -45,7 +47,7 @@ public class ServiceDownload {
 			service = new DownloadWSService(url, new QName("http://ws.mock.asr.visiteinlinea.it/", "ServiceDownload"));
 		else
 			service = new DownloadWSService(url, new QName("http://ws.pervoice.it/audiomabox/service/Download/1.0/", "DownloadWSService"));
-		
+
 		downloadWS = service.getPort(DownloadWS.class);
 		
 		BindingProvider bp = (BindingProvider)downloadWS;
@@ -82,11 +84,11 @@ public class ServiceDownload {
 		return downloadWS;
 	}
 	
-	public DownloadRequest initDownloadRequest(String identificativo) {
+	public DownloadRequest initDownloadRequest(String identificativo, PropertiesBean propertiesBean) {
 		
 		DownloadRequest downloadRequest = new DownloadRequest();
 		
-		downloadRequest.setClientInfo(UtilsAsr.popolaclientInfo());
+		downloadRequest.setClientInfo(UtilsAsr.popolaclientInfo(propertiesBean));
 		downloadRequest.setJobId(Long.parseLong(identificativo));
 		downloadRequest.setFormat(OutputType.PVT);
 		
@@ -107,15 +109,11 @@ public class ServiceDownload {
 		
 		String filePvt = new String(byteArray, "UTF-8");
 		testi[0] = filePvt;
-		
-		//LOGGER.info("_______ filePvt : " + filePvt);
 				
 		Document fileXml = UtilsAsr.convertStringToDocument(filePvt);
 		fileXml.getDocumentElement().normalize();
 		String testo = UtilsAsr.concatena(fileXml);
 		testi[1] = testo;
-		
-		//LOGGER.info("_______ testo : " + testo);
 		
 		return testi;
 		
