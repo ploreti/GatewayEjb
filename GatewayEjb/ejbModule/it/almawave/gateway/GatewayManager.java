@@ -84,6 +84,7 @@ public class GatewayManager {
 
 	@Timeout
 	public void startProcess(Timer timer) throws DbException{
+		//LOGGER.info("----------------->"+timer.getInfo()+" "+idDifformita);
 
 		try {
 			if (identificativo == null) {

@@ -89,6 +89,7 @@ public class ServiceUpload {
 			byte[] data = FileUtils.readFileToByteArray(file);
 			ByteArrayDataSource rawData = new ByteArrayDataSource(data,"application/octet-stream");
 			
+			rawData.setName(file.getName());
 			return  rawData;
 		} catch (Exception e) {
 			throw new FileNotFoundException();
@@ -99,7 +100,7 @@ public class ServiceUpload {
 	public UploadRequest initStatusRequest(DoRequestBean request, PropertiesBean propertiesBean) throws FileNotFoundException  {
 		
 		ByteArrayDataSource rawData = this.recuperaFile(request.getPercorsoFileAudio());
-		
+
 		UploadRequest uploadRequest = new UploadRequest();
 		uploadRequest.setClientInfo(UtilsAsr.popolaclientInfo(propertiesBean));
 		
