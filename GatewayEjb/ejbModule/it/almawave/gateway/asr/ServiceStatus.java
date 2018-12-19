@@ -35,7 +35,7 @@ public class ServiceStatus {
 		URL baseUrl =  it.pervoice.ws.audiomabox.service.status._1.StatusWSService.class.getResource(".");
 		URL url = new URL(baseUrl, serviceStatusUrl);
 
-		LOGGER.info("url " + url.toString());
+		//LOGGER.info("url " + url.toString());
 
 
 		
@@ -95,20 +95,16 @@ public class ServiceStatus {
 		JobFileType job = statusResponse.getJob().get(0);
 
 		//job in errore 
-		if(
-				job.getStatus().value().equals(EnumStatusType.FAILED.value())||
-				job.getStatus().value().equals(EnumStatusType.SUBMITERROR.value())||
-				job.getStatus().value().equals(EnumStatusType.PROCESSINGERROR.value())
-				)
-		{
+		if( job.getStatus().value().equals(EnumStatusType.FAILED.value())||
+			job.getStatus().value().equals(EnumStatusType.SUBMITERROR.value())||
+			job.getStatus().value().equals(EnumStatusType.PROCESSINGERROR.value())){
+			
 			LOGGER.info("_______ job terminato con errore : " + job.getErrCode());
 			FaultType fault = new FaultType(); 
 			fault.setErrorCode(String.valueOf( job.getErrCode() ));
 			fault.setErrorMessage(job.getStatusReason());
 			throw new StatusFault("job terminato con errore", fault) ;
 		}
-
-
 
 		stato = job.getStatus().value();
 

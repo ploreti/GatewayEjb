@@ -139,6 +139,7 @@ public class DbManager {
 				byte[] testo = gatewayResponse.getPlainText().getBytes(Charset.forName("UTF-8"));
 				risposta.setTESTO(testo);
 			}
+			risposta.setURGENTE(String.valueOf(gatewayResponse.getIsUrgent()));
 			if (!gatewayResponse.getTuples().isEmpty()) {
 				List<Tuple> tuple = gatewayResponse.getTuples();
 				for (int i = 0; i < tuple.size(); i++) {
@@ -181,6 +182,22 @@ public class DbManager {
 				return "Nessuna richiesta è stata trovata";
 	
 			return results.get(0).getDESCRIZIONE();
+    	}catch (Exception e) {
+    		e.printStackTrace();
+    		throw new DbException("ERRORE nel recupero dello stato ", 120);
+		}
+    }
+    
+    public int leggiIdStato(String idDifformita) throws DbException {
+    	try {
+	    	Query query = em.createNamedQuery("RequestStatus.findStatusByExtId");
+			query.setParameter("extID", idDifformita);
+			List<Status> results = query.getResultList();
+	
+			if (results.isEmpty())
+				return 0;
+	
+			return results.get(0).getSTATUS();
     	}catch (Exception e) {
     		e.printStackTrace();
     		throw new DbException("ERRORE nel recupero dello stato ", 120);

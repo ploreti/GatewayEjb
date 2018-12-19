@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.StringTokenizer;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -108,6 +109,20 @@ public class UtilsAsr {
 			}
 		}
 		return testo;
+	}
+	
+	public static String composeHeaderMsg(String msg) {
+		return("____________________"+msg.toUpperCase()+"____________________");
+	}
+	
+	public static String getIdDifformita(StringTokenizer tokens){
+		//secondo elemento
+		tokens.nextToken();
+		return tokens.nextToken();
+	}
+	
+	public static String getId(StringTokenizer tokens){
+		return tokens.nextToken();
 	}
 	
 	public static void main(String[] args) {

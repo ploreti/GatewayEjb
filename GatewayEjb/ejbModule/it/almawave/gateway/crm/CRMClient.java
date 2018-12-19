@@ -181,10 +181,20 @@ public class CRMClient{
 			}
 		);
 		
+		gr.setIsUrgent(false);
+		ArrayList<LinkedHashMap<String,Object>> extractedConcepts=(ArrayList<LinkedHashMap<String,Object>>)addProp.get("extractedConcepts");
+		
+		extractedConcepts.forEach(item->{
+			String resourceURI = (String)item.get("resourceURI");
+			int index = resourceURI.indexOf("#urgente");
+			if (index > 0)gr.setIsUrgent(true);
+			}
+		);
+		
 		String plainText=(String)addProp.get("plainText");
 		gr.setTuples(tupleList);
 		gr.setPlainText(plainText);
-		//TODO: settare priorita e km
+		//TODO: settare km
 		
 		return gr;
 	}

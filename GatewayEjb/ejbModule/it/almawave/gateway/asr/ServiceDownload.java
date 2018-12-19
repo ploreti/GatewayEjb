@@ -40,7 +40,7 @@ public class ServiceDownload {
 		URL url = new URL(baseUrl, serviceDownloadUrl);
 		
 
-		LOGGER.info("url " + url.toString());
+		//LOGGER.info("url " + url.toString());
 		
 		DownloadWSService service = null;
 		if (isMokcServicesAsr)
@@ -97,23 +97,28 @@ public class ServiceDownload {
 	}
 	
 	
-	public String[] elaboraResonse(DownloadResponse downloadResponse, String identificativo) throws IOException, ParserConfigurationException, SAXException {
+	public String[] elaboraResonse(DownloadResponse downloadResponse, String identificativo) throws ParserConfigurationException {
+		
 		
 		String[] testi = new String[2];
 		
-		//formattare il testo dalle response
-		DataHandler dataHandler = downloadResponse.getTranscription().getData();
-		
-		final InputStream in = dataHandler.getInputStream();
-		byte[] byteArray = org.apache.commons.io.IOUtils.toByteArray(in);
-		
-		String filePvt = new String(byteArray, "UTF-8");
-		testi[0] = filePvt;
-				
-		Document fileXml = UtilsAsr.convertStringToDocument(filePvt);
-		fileXml.getDocumentElement().normalize();
-		String testo = UtilsAsr.concatena(fileXml);
-		testi[1] = testo;
+		try {
+			//formattare il testo dalle response
+			DataHandler dataHandler = downloadResponse.getTranscription().getData();
+			
+			final InputStream in = dataHandler.getInputStream();
+			byte[] byteArray = org.apache.commons.io.IOUtils.toByteArray(in);
+			
+			String filePvt = new String(byteArray, "UTF-8");
+			testi[0] = filePvt;
+					
+			Document fileXml = UtilsAsr.convertStringToDocument(filePvt);
+			fileXml.getDocumentElement().normalize();
+			String testo = UtilsAsr.concatena(fileXml);
+			testi[1] = testo;
+		} catch (Exception e){
+			throw new ParserConfigurationException("ERRORE conversione oggetto");
+		}
 		
 		return testi;
 		
