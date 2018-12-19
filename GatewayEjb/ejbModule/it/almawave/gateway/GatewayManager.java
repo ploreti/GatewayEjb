@@ -2,7 +2,6 @@ package it.almawave.gateway;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.Date;
 
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
@@ -13,8 +12,6 @@ import javax.ejb.Timeout;
 import javax.ejb.Timer;
 import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.http.client.HttpResponseException;
@@ -91,6 +88,7 @@ public class GatewayManager {
 
 	@Timeout
 	public void startProcess(Timer timer) throws DbException{
+		//LOGGER.info("----------------->"+timer.getInfo()+" "+idDifformita);
 
 		try {
 			if (identificativo == null) {
